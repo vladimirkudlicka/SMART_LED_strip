@@ -8,7 +8,7 @@ import network
 import ntptime
 import socket
 import neopixel
-from time import sleep
+from time import sleep,sleep_ms
 import neopixel
 #display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
@@ -30,7 +30,11 @@ touch=[False,0,0]
 #initiation sequence
 dsp.draw_text8x8(20,160, 'starting SMART LED system', color565(255,255,255))
 dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
+#sensors config
 sound=ADC(Pin(34))
+#NeoPixel config
+pixLenght=8
+pix=neopixel.NeoPixel(Pin(21),pixLenght)
 sleep(2)
 #connecting
 #Color generator
@@ -65,6 +69,32 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
     return myColor
 #neopixel modes functions and other
 runAnimation=False
+pixModesFunctions=[]
+def white(temperature,fadingActive,fminBrightness,fmaxBrightness,fspeed,brightness):
+    global runAnimation
+    if fadingActive:
+        bright=fminBrightness
+        up=True
+        while runAnimation:
+            color=(int(255*bright),int((255-temperature/4)*bright),int((255-temperature)*bright))
+            pix.fill(color)
+            pix.write()
+            if up:
+                bright+=0.01
+            else:
+                bright-=0.01
+            if bright>=fmaxBrightness and up:
+                up=False
+            elif bright<=fminBrightness and not up:
+                up=True
+            sleep_ms(int(5000/fspeed))
+
+
+    else:
+        color=(int(255*brightness),int((255-temperature/4)*brightness),int((255-temperature)*brightness))
+        pix.fill(color)
+        pix.write()
+
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -220,6 +250,8 @@ def screenMode_picker_touch(x,y):
     screenModePickerActive=False
 screenMode_picker_UI()
 screenModePickerActive=True
+runAnimation=True
+white(0,True,0.05,0.5,100,1)
 while True:    
     if touch[0]:
         touch[0]=False
