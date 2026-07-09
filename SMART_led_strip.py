@@ -220,7 +220,7 @@ def rainbow_scrolling(speed,saturation,brightness,reverse):
                 hue-=360
         sleep_ms(int(5000/speed))
 #dynamic category
-def dynamic_color_range(color1,color2,speed,direction,brightness):
+def dynamic_color_range(color1,color2,speed,direction,brightness,reverse):
     global runAnimation, pixLenght
     satStep=(color2[1]-color1[1])/(pixLenght-1)
     if color1[0]<=color2[0]:
@@ -242,9 +242,9 @@ def dynamic_color_range(color1,color2,speed,direction,brightness):
         sat=color1[1]+satStep*i
         pixList[i]=[hue,sat]
     if direction==1:
-        pixList.reverse()
         satStep=-satStep
-
+    if reverse:
+        pixList.reverse()
     while runAnimation:
         for i in range(pixLenght):
             if direction==0:
@@ -266,8 +266,24 @@ def dynamic_color_range(color1,color2,speed,direction,brightness):
             pix[i]=getRGB(pixList[i][0],pixList[i][1],brightness)
         pix.write()
         sleep((5000/(abs(satStep*(pixLenght-1))+hueStep*(pixLenght-1)))/speed)
-                
-                
+def dynamic_rainbow(saturation,speed,direction,brightness,reverse):
+    global runAnimation, pixLenght
+    pixList=[(360/pixLenght)*i for i in range(pixLenght)]
+    if reverse:
+        pixList.reverse()               
+    while runAnimation:
+        for i in range(pixLenght):
+            if direction==0:
+                pixList[i]+=1
+                if pixList[i]>=359:
+                    pixList[i]=0    
+            elif direction==1:
+                pixList[i]-=1
+                if pixList[i]<=0:
+                    pixList[i]=359
+            pix[i]=getRGB(pixList[i],saturation,brightness)
+        pix.write()
+        sleep_ms(int(5000/speed))
            
 
 #color picker displaying + touchscreen reaction
@@ -431,8 +447,8 @@ def screenMode_picker_touch(x,y):
 #screenMode_picker_UI()
 #screenModePickerActive=True
 runAnimation=True
-#static_rainbow(100,False,0,0,0,0,0.2,False)
-dynamic_color_range([0,100],[60,100],50,0,0.3)
+#dynamic_color_range([100,100],[200,100],1000,0,1,False)
+#dynamic_rainbow(100,1000,0,1,False)
 #color_picker_UI()
 #colorPickerData[0]=True
 while True:    
