@@ -33,11 +33,14 @@ dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 #sensors config
 sound=ADC(Pin(34))
 #NeoPixel config
-pixLenght=8
-pix=neopixel.NeoPixel(Pin(21),pixLenght)
+pixLength=8
+pix=neopixel.NeoPixel(Pin(21),pixLength)
+pix.fill((0,0,0))
+pix.write()
 sleep(2)
-#connecting
+#connecting to WiFi
 #Color generator
+#soure:https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (it was modified by my to contain brightnes, saturation and I flipped the color wheel)
 def getRGB(deg,sat,brightness):#sat=saturation(0-100)
     deg=360-deg
     if deg>360:
@@ -72,9 +75,9 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
         B=0
     myColor=(int(((R*sat*255)+(255*(1-sat)))*brightness),int(((G*sat*255)+(255*(1-sat)))*brightness),int(((B*sat*255)+(255*(1-sat)))*brightness))
     return myColor
-#neopixel modes functions and other
+#neopixel modes functions and support functions
 runAnimation=False
-pixModesFunctions=[]
+pixmode=0
 #fullpix category functions
 def fading(lvl,up,minBright,maxBright,fadetype):
     if up:
@@ -122,42 +125,42 @@ def monocolor(color,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightnes
         pix.fill(getRGB(color[0],color[1],brightness))
         pix.write()
 def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness):
-    global runAnimation,pixLenght
+    global runAnimation,pixLength
     if fadingActive:
         bright=fminBright
         up=True
         lvl=0
-        pixList=[0 for _ in range(pixLenght)]
-        for i in range(0,pixLenght,2):
+        pixList=[0 for _ in range(pixLength)]
+        for i in range(0,pixLength,2):
                 pixList[i]=getRGB(color1[0],color1[1],1)
-        for i in range(1,pixLenght,2):
+        for i in range(1,pixLength,2):
             pixList[i]=getRGB(color2[0],color2[1],1)
         while runAnimation:
             bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
-            for i in range(pixLenght):
+            for i in range(pixLength):
                 pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
             pix.write()
             sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
     else:
-        for i in range(0,pixLenght,2):
+        for i in range(0,pixLength,2):
                 pix[i]=getRGB(color1[0],color1[1],brightness)
-        for i in range(1,pixLenght,2):
+        for i in range(1,pixLength,2):
             pix[i]=getRGB(color2[0],color2[1],brightness)
         pix.write()
 def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
-    global pixLenght,runAnimation
-    satStep=(color2[1]-color1[1])/(pixLenght-1)
+    global pixLength,runAnimation
+    satStep=(color2[1]-color1[1])/(pixLength-1)
     if color1[0]<=color2[0]:
-        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+        hueStep=(color2[0]-color1[0])/(pixLength-1)
     else:
         color2[0]+=360
-        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+        hueStep=(color2[0]-color1[0])/(pixLength-1)
     if fadingActive:
         bright=fminBright
         up=True
         lvl=0
-        pixList=[0 for _ in range(pixLenght)]
-        for i in range(pixLenght):
+        pixList=[0 for _ in range(pixLength)]
+        for i in range(pixLength):
             hue=color1[0]+hueStep*i
             sat=color1[0]+satStep*i
             pixList[i]=getRGB(int(hue),int(sat),1)
@@ -165,14 +168,14 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
             pixList.reverse()
         while runAnimation:
             bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
-            for i in range(pixLenght):
+            for i in range(pixLength):
                 pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
             pix.write()
             sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
     else:
-        for i in range(pixLenght):
+        for i in range(pixLength):
             if reverse:
-                a=pixLenght-1-i
+                a=pixLength-1-i
             else:
                 a=i
             hue=color1[0]+hueStep*a
@@ -180,25 +183,25 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
             pix[i]=getRGB(int(hue),int(sat),brightness)
         pix.write()
 def static_rainbow(saturation,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
-    global runAnimation, pixLenght
-    hueStep=360/pixLenght
+    global runAnimation, pixLength
+    hueStep=360/pixLength
     if fadingActive:
         bright=fminBright
         up=True
         lvl=0
-        pixList=[getRGB(hueStep*i,saturation,1) for i in range(pixLenght)]
+        pixList=[getRGB(hueStep*i,saturation,1) for i in range(pixLength)]
         if reverse:
             pixList.reverse()
         while runAnimation:
             bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
-            for i in range(pixLenght):
+            for i in range(pixLength):
                 pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
             pix.write()
             sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
     else:
-        for i in range(pixLenght):
+        for i in range(pixLength):
             if reverse:
-                a=pixLenght-1-i
+                a=pixLength-1-i
             else:
                 a=i
             hue=hueStep*a
@@ -221,13 +224,13 @@ def rainbow_scrolling(speed,saturation,brightness,reverse):
         sleep_ms(int(5000/speed))
 #dynamic category
 def dynamic_color_range(color1,color2,speed,direction,brightness,reverse):
-    global runAnimation, pixLenght
-    satStep=(color2[1]-color1[1])/(pixLenght-1)
+    global runAnimation, pixLength
+    satStep=(color2[1]-color1[1])/(pixLength-1)
     if color1[0]<=color2[0]:
-        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+        hueStep=(color2[0]-color1[0])/(pixLength-1)
     else:
         color2[0]+=360
-        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+        hueStep=(color2[0]-color1[0])/(pixLength-1)
 
     if color1[1]>color2[1]:
         lowSat=color2[1]
@@ -236,8 +239,8 @@ def dynamic_color_range(color1,color2,speed,direction,brightness,reverse):
         lowSat=color1[1]
         highSat=color2[1]
 
-    pixList=[0 for _ in range(pixLenght)]
-    for i in range(pixLenght):
+    pixList=[0 for _ in range(pixLength)]
+    for i in range(pixLength):
         hue=color1[0]+hueStep*i
         sat=color1[1]+satStep*i
         pixList[i]=[hue,sat]
@@ -246,7 +249,7 @@ def dynamic_color_range(color1,color2,speed,direction,brightness,reverse):
     if reverse:
         pixList.reverse()
     while runAnimation:
-        for i in range(pixLenght):
+        for i in range(pixLength):
             if direction==0:
                 pixList[i][0]+=1               
                 if pixList[i][0]>color2[0]:
@@ -265,14 +268,14 @@ def dynamic_color_range(color1,color2,speed,direction,brightness,reverse):
                     pixList[i][1]=highSat
             pix[i]=getRGB(pixList[i][0],pixList[i][1],brightness)
         pix.write()
-        sleep((5000/(abs(satStep*(pixLenght-1))+hueStep*(pixLenght-1)))/speed)
+        sleep((5000/(abs(satStep*(pixLength-1))+hueStep*(pixLength-1)))/speed)
 def dynamic_rainbow(saturation,speed,direction,brightness,reverse):
-    global runAnimation, pixLenght
-    pixList=[(360/pixLenght)*i for i in range(pixLenght)]
+    global runAnimation, pixLength
+    pixList=[(360/pixLength)*i for i in range(pixLength)]
     if reverse:
         pixList.reverse()               
     while runAnimation:
-        for i in range(pixLenght):
+        for i in range(pixLength):
             if direction==0:
                 pixList[i]+=1
                 if pixList[i]>=359:
@@ -284,7 +287,45 @@ def dynamic_rainbow(saturation,speed,direction,brightness,reverse):
             pix[i]=getRGB(pixList[i],saturation,brightness)
         pix.write()
         sleep_ms(int(5000/speed))
-           
+def  running_light_full(color,tracewidth,brightness,style,speed):
+    global runAnimation, pixLength
+    if style==0 or style==2:
+        pos=0
+        up=True
+    elif style==1:
+        pos=pixLength-1
+        up = False
+    while runAnimation:
+        pix.fill((0,0,0))
+        if up:
+            pos+=1
+        else:
+            pos-=1
+        if pos<0 and not up and style==1:
+                pos=pixLength-1
+        elif pos<=0 and not up and style==2:
+            up=True
+        elif pos>pixLength-1 and up and style==0:
+            pos=0
+        elif pos>=pixLength-1 and up and style==2:
+            pos=pixLength-1
+            up =False
+        pix[pos]=getRGB(color[0],color[1],brightness)
+        if pos+tracewidth>pixLength-1:
+            trace=tracewidth-(pos+tracewidth-pixLength+1)
+        else:
+            trace=tracewidth
+        for i in range(pos+1,pos+trace+1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+i-pos))
+        if pos-tracewidth<0:
+            trace=tracewidth+(pos-tracewidth)
+        else:
+            trace=tracewidth
+        for i in range(pos-1,pos-trace-1,-1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+pos-i))
+        pix.write()
+        sleep_ms(int(5000/speed))
+pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full]      
 
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
@@ -449,6 +490,7 @@ def screenMode_picker_touch(x,y):
 runAnimation=True
 #dynamic_color_range([100,100],[200,100],1000,0,1,False)
 #dynamic_rainbow(100,1000,0,1,False)
+running_light_full([100,100],2,0.5,2,10)
 #color_picker_UI()
 #colorPickerData[0]=True
 while True:    
