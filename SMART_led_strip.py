@@ -39,6 +39,11 @@ sleep(2)
 #connecting
 #Color generator
 def getRGB(deg,sat,brightness):#sat=saturation(0-100)
+    deg=360-deg
+    if deg>360:
+        deg-=360
+    elif deg<0:
+        deg+=360
     sat=sat/100
     m=1/60
     if deg>=0 and deg<60:
@@ -61,7 +66,7 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
         R=m*(deg-240)
         G=1
         B=0
-    if deg>=300 and deg<360:
+    if deg>=300 and deg<=360:
         R=1
         G=1-m*(deg-300)
         B=0
@@ -155,8 +160,6 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
         for i in range(pixLenght):
             hue=color1[0]+hueStep*i
             sat=color1[0]+satStep*i
-            if hue>=360:
-                hue-=360
             pixList[i]=getRGB(int(hue),int(sat),1)
         if reverse:
             pixList.reverse()
@@ -174,11 +177,10 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
                 a=i
             hue=color1[0]+hueStep*a
             sat=color1[0]+satStep*a
-            if hue>=360:
-                hue-=360
             pix[i]=getRGB(int(hue),int(sat),brightness)
         pix.write()
 def static_rainbow(saturation,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
+    global runAnimation, pixLenght
     hueStep=360/pixLenght
     if fadingActive:
         bright=fminBright
@@ -217,7 +219,56 @@ def rainbow_scrolling(speed,saturation,brightness,reverse):
             if hue>=360:
                 hue-=360
         sleep_ms(int(5000/speed))
-        
+#dynamic category
+def dynamic_color_range(color1,color2,speed,direction,brightness):
+    global runAnimation, pixLenght
+    satStep=(color2[1]-color1[1])/(pixLenght-1)
+    if color1[0]<=color2[0]:
+        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+    else:
+        color2[0]+=360
+        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+
+    if color1[1]>color2[1]:
+        lowSat=color2[1]
+        highSat=color1[1]
+    if color1[1]<color2[1]:
+        lowSat=color1[1]
+        highSat=color2[1]
+
+    pixList=[0 for _ in range(pixLenght)]
+    for i in range(pixLenght):
+        hue=color1[0]+hueStep*i
+        sat=color1[1]+satStep*i
+        pixList[i]=[hue,sat]
+    if direction==1:
+        pixList.reverse()
+        satStep=-satStep
+
+    while runAnimation:
+        for i in range(pixLenght):
+            if direction==0:
+                pixList[i][0]+=1               
+                if pixList[i][0]>color2[0]:
+                    pixList[i][0]=color1[0]
+            elif direction==1:
+                pixList[i][0]-=1
+                if pixList[i][0]<color1[0]:
+                    pixList[i][0]=color2[0]
+            if satStep>0:
+                pixList[i][1]+=1
+                if pixList[i][1]>highSat:
+                    pixList[i][1]=lowSat
+            elif satStep<0:
+                pixList[i][1]-=1
+                if pixList[i][1]<lowSat:
+                    pixList[i][1]=highSat
+            pix[i]=getRGB(pixList[i][0],pixList[i][1],brightness)
+        pix.write()
+        sleep((5000/(abs(satStep*(pixLenght-1))+hueStep*(pixLenght-1)))/speed)
+                
+                
+           
 
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
@@ -226,6 +277,8 @@ selected_color=[0,0]
 def color_picker_UI():
     dsp.clear()
     dspLED.off()
+    pix.fill((0,0,0))
+    pix.write()
     r=100
     X=120
     Y=160
@@ -238,9 +291,8 @@ def color_picker_UI():
             dst=(dx**2+dy**2)**0.5
             if dst<=r:
                 deg=math.atan2(dy,dx)*(180/math.pi)
-                deg-=90
-                if deg<0:
-                    deg+=360
+                deg=360-deg#changing direction
+                deg+=90#rotating color wheel
                 R,G,B=getRGB(deg,dst,1)
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
@@ -255,9 +307,8 @@ def color_picker_UI():
             dst=(dx**2+dy**2)**0.5
             if dst<=r:
                 deg=math.atan2(dy,dx)*(180/math.pi)
-                deg-=90
-                if deg<0:
-                    deg+=360
+                deg=360-deg#changing direction
+                deg+=90#rotating color wheel
                 R,G,B=getRGB(deg,dst,1)
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
@@ -277,12 +328,17 @@ def color_picker_touch(x,y):
         dst=(dx**2+dy**2)**0.5
         if dst<=100:
             deg=math.atan2(dy,dx)*(180/math.pi)
-            deg-=90
-            if deg<0:
+            deg=360-deg#changing direction
+            deg+=90#rotating color wheel
+            if deg>360:
+                deg-=360
+            elif deg<0:
                 deg+=360
             R,G,B=getRGB(deg,dst,1)
-        dsp.fill_hrect(0,0,240,25,color565(R,G,B))
-        selected_color=[deg,dst]
+            dsp.fill_hrect(0,0,240,25,color565(R,G,B))
+            pix.fill((R,G,B))
+            pix.write()
+            selected_color=[deg,dst]
     elif x>=150 and y>=270:
         colorPickerData[0]=False
         pixColors[colorPickerData[1]]=selected_color
@@ -372,11 +428,13 @@ def screenMode_picker_touch(x,y):
     print(i)
     screenMode=i
     screenModePickerActive=False
-screenMode_picker_UI()
-screenModePickerActive=True
+#screenMode_picker_UI()
+#screenModePickerActive=True
 runAnimation=True
-#static_rainbow(100,False,0.01,0.2,50,1,0.1,True)
-rainbow_scrolling(100,100,0.5,True)
+#static_rainbow(100,False,0,0,0,0,0.2,False)
+dynamic_color_range([0,100],[60,100],50,0,0.3)
+#color_picker_UI()
+#colorPickerData[0]=True
 while True:    
     if touch[0]:
         touch[0]=False
