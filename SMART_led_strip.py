@@ -70,7 +70,7 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
 #neopixel modes functions and other
 runAnimation=False
 pixModesFunctions=[]
-def fading(lvl,up,minBright,maxBright):
+def fading(lvl,up,minBright,maxBright,fadetype):
     if up:
         lvl+=0.01
     else:
@@ -79,17 +79,20 @@ def fading(lvl,up,minBright,maxBright):
         up=False
     elif lvl<=0 and not up:
         up=True
-    bright=minBright+((maxBright-minBright)*((100**lvl)/100))
+    if fadetype==1:
+        bright=minBright+((maxBright-minBright)*((100**lvl)/100))
+    elif fadetype==0:
+        bright=minBright+((maxBright-minBright)*lvl)
     return bright,lvl,up
 
-def white(temperature,fadingActive,fminBrightness,fmaxBrightness,fspeed,brightness):
+def white(temperature,fadingActive,fminBrightness,fmaxBrightness,fspeed,fadetype,brightness):
     global runAnimation
     if fadingActive:
         bright=fminBrightness
         lvl=0
         up=True
         while runAnimation:
-            bright,lvl,up=fading(lvl,up,fminBrightness,fmaxBrightness)
+            bright,lvl,up=fading(lvl,up,fminBrightness,fmaxBrightness,fadetype)
             color=(int(255*bright),int((255-temperature/4)*bright),int((255-temperature)*bright))
             pix.fill(color)
             pix.write() 
@@ -98,21 +101,21 @@ def white(temperature,fadingActive,fminBrightness,fmaxBrightness,fspeed,brightne
         color=(int(255*brightness),int((255-temperature/4)*brightness),int((255-temperature)*brightness))
         pix.fill(color)
         pix.write()
-def monocolor(color,fadingActive,fminBright,fmaxBright,fspeed,brightness):
+def monocolor(color,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness):
     global runAnimation
     if fadingActive:
         bright=fminBright
         up=True
         lvl=0
         while runAnimation:
-            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright)
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
             pix.fill(getRGB(color[0],color[1],bright))
             pix.write()
             sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
     else:
         pix.fill(getRGB(color[0],color[1],brightness))
         pix.write()
-def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,brightness):
+def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness):
     global runAnimation,pixLenght
     if fadingActive:
         bright=fminBright
@@ -124,7 +127,7 @@ def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,brightness):
         for i in range(1,pixLenght,2):
             pixList[i]=getRGB(color2[0],color2[1],1)
         while runAnimation:
-            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright)
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
             for i in range(pixLenght):
                 pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
             pix.write()
@@ -135,7 +138,39 @@ def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,brightness):
         for i in range(1,pixLenght,2):
             pix[i]=getRGB(color2[0],color2[1],brightness)
         pix.write()
-
+def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness):
+    global pixLenght,runAnimation
+    satStep=(color2[1]-color1[1])/(pixLenght-1)
+    if color1[0]<=color2[0]:
+        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+    else:
+        color2[0]+=360
+        hueStep=(color2[0]-color1[0])/(pixLenght-1)
+    if fadingActive:
+        bright=fminBright
+        up=True
+        lvl=0
+        pixList=[0 for _ in range(pixLenght)]
+        for i in range(pixLenght):
+            hue=color1[0]+hueStep*i
+            sat=color1[0]+satStep*i
+            if hue>=360:
+                hue-=360
+            pixList[i]=getRGB(int(hue),int(sat),1)
+        while runAnimation:
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
+            for i in range(pixLenght):
+                pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
+            pix.write()
+            sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
+    else:
+        for i in range(pixLenght):
+            hue=color1[0]+hueStep*i
+            sat=color1[0]+satStep*i
+            if hue>=360:
+                hue-=360
+            pix[i]=getRGB(int(hue),int(sat),brightness)
+        pix.write()
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -292,7 +327,7 @@ def screenMode_picker_touch(x,y):
 screenMode_picker_UI()
 screenModePickerActive=True
 runAnimation=True
-bicolor([100,100],[200,100],True,0.01,0.2,50,0.1)
+color_range([100,100],[200,50],True,0.01,0.2,50,1,0.1)
 while True:    
     if touch[0]:
         touch[0]=False
