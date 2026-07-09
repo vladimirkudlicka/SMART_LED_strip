@@ -316,7 +316,7 @@ def  running_light_full(color,tracewidth,brightness,style,speed):
         else:
             trace=tracewidth
         for i in range(pos+1,pos+trace+1):
-            pix[i]=getRGB(color[0],color[1],brightness/(1+i-pos))
+            pix[i]=getRGB(color[0],color[1],brightness/(1+i-pos)) 
         if pos-tracewidth<0:
             trace=tracewidth+(pos-tracewidth)
         else:
@@ -325,7 +325,87 @@ def  running_light_full(color,tracewidth,brightness,style,speed):
             pix[i]=getRGB(color[0],color[1],brightness/(1+pos-i))
         pix.write()
         sleep_ms(int(5000/speed))
-pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full]      
+def running_light_center(color,tracewidth,brightness,style,speed):
+    global runAnimation,pixLength
+    if pixLength%2==0:
+        start1=int(pixLength/2)-1
+        start2=int(pixLength/2)
+    else:
+        start1=int(pixLength/2)
+        start2=int(pixLength/2)
+
+    if style==0 or style==2:
+        pos1=start1
+        pos2=start2
+        up2=True
+        up1=False
+    elif style==1:
+        pos2=pixLength-1
+        pos1=0
+        up2 = False
+        up1=True
+    while runAnimation:
+        pix.fill((0,0,0))
+        if up1:
+            pos1+=1
+        else:
+            pos1-=1
+        if pos1<0 and not up1 and style==0:
+                pos1=start1
+        elif pos1<=0 and not up1 and style==2:
+            up1=True
+        elif pos1>start1 and up1 and style==1:
+            pos1=0
+        elif pos1>=start1 and up1 and style==2:
+            pos1=start1
+            up1 =False
+        pix[pos1]=getRGB(color[0],color[1],brightness)
+        if pos1+tracewidth>start1:
+            trace=tracewidth-(pos1+tracewidth-start1)
+        else:
+            trace=tracewidth
+        for i in range(pos1+1,pos1+trace+1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+i-pos1)) 
+        if pos1-tracewidth<0:
+            trace=tracewidth+(pos1-tracewidth)
+        else:
+            trace=tracewidth
+        for i in range(pos1-1,pos1-trace-1,-1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+pos1-i))
+
+
+        if up2:
+            pos2+=1
+        else:
+            pos2-=1
+        if pos2<start2 and not up2 and style==1:
+                pos2=pixLength-1
+        elif pos2<=start2 and not up2 and style==2:
+            up2=True
+        elif pos2>pixLength-1 and up2 and style==0:
+            pos2=start2
+        elif pos2>=pixLength-1 and up2 and style==2:
+            pos2=pixLength-1
+            up2 =False
+        pix[pos2]=getRGB(color[0],color[1],brightness)
+        if pos2+tracewidth>pixLength-1:
+            trace=tracewidth-(pos2+tracewidth-pixLength+1)
+        else:
+            trace=tracewidth
+        for i in range(pos2+1,pos2+trace+1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+i-pos2)) 
+        if pos2-tracewidth<start2:
+            trace=tracewidth-(start2-(pos2-tracewidth))
+        else:
+            trace=tracewidth
+        for i in range(pos2-1,pos2-trace-1,-1):
+            pix[i]=getRGB(color[0],color[1],brightness/(1+pos2-i))
+        pix.write()
+        sleep_ms(int(5000/speed))
+
+        
+
+pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center]      
 
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
@@ -490,7 +570,7 @@ def screenMode_picker_touch(x,y):
 runAnimation=True
 #dynamic_color_range([100,100],[200,100],1000,0,1,False)
 #dynamic_rainbow(100,1000,0,1,False)
-running_light_full([100,100],2,0.5,2,10)
+running_light_center([100,100],1,0.5,1,10)
 #color_picker_UI()
 #colorPickerData[0]=True
 while True:    
