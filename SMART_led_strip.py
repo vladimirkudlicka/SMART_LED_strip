@@ -162,7 +162,7 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
         pixList=[0 for _ in range(pixLength)]
         for i in range(pixLength):
             hue=color1[0]+hueStep*i
-            sat=color1[0]+satStep*i
+            sat=color1[1]+satStep*i
             pixList[i]=getRGB(int(hue),int(sat),1)
         if reverse:
             pixList.reverse()
@@ -179,7 +179,7 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
             else:
                 a=i
             hue=color1[0]+hueStep*a
-            sat=color1[0]+satStep*a
+            sat=color1[1]+satStep*a
             pix[i]=getRGB(int(hue),int(sat),brightness)
         pix.write()
 def static_rainbow(saturation,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
@@ -570,9 +570,10 @@ def screenMode_picker_touch(x,y):
 runAnimation=True
 #dynamic_color_range([100,100],[200,100],1000,0,1,False)
 #dynamic_rainbow(100,1000,0,1,False)
-running_light_center([100,100],1,0.5,1,10)
+#running_light_full([100,100],1,0.2,2,10)
 #color_picker_UI()
 #colorPickerData[0]=True
+color_range([120,100],[240,100],True,0.2,0.5,100,1,0.1,False)
 while True:    
     if touch[0]:
         touch[0]=False
