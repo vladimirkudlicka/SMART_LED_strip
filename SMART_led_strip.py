@@ -70,6 +70,7 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
 #neopixel modes functions and other
 runAnimation=False
 pixModesFunctions=[]
+#fullpix category functions
 def fading(lvl,up,minBright,maxBright,fadetype):
     if up:
         lvl+=0.01
@@ -138,7 +139,7 @@ def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,bri
         for i in range(1,pixLenght,2):
             pix[i]=getRGB(color2[0],color2[1],brightness)
         pix.write()
-def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness):
+def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
     global pixLenght,runAnimation
     satStep=(color2[1]-color1[1])/(pixLenght-1)
     if color1[0]<=color2[0]:
@@ -157,6 +158,8 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
             if hue>=360:
                 hue-=360
             pixList[i]=getRGB(int(hue),int(sat),1)
+        if reverse:
+            pixList.reverse()
         while runAnimation:
             bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
             for i in range(pixLenght):
@@ -165,12 +168,57 @@ def color_range(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,fadetype
             sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
     else:
         for i in range(pixLenght):
-            hue=color1[0]+hueStep*i
-            sat=color1[0]+satStep*i
+            if reverse:
+                a=pixLenght-1-i
+            else:
+                a=i
+            hue=color1[0]+hueStep*a
+            sat=color1[0]+satStep*a
             if hue>=360:
                 hue-=360
             pix[i]=getRGB(int(hue),int(sat),brightness)
         pix.write()
+def static_rainbow(saturation,fadingActive,fminBright,fmaxBright,fspeed,fadetype,brightness,reverse):
+    hueStep=360/pixLenght
+    if fadingActive:
+        bright=fminBright
+        up=True
+        lvl=0
+        pixList=[getRGB(hueStep*i,saturation,1) for i in range(pixLenght)]
+        if reverse:
+            pixList.reverse()
+        while runAnimation:
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright,fadetype)
+            for i in range(pixLenght):
+                pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
+            pix.write()
+            sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
+    else:
+        for i in range(pixLenght):
+            if reverse:
+                a=pixLenght-1-i
+            else:
+                a=i
+            hue=hueStep*a
+            pix[i]=getRGB(int(hue),int(saturation),brightness)
+        pix.write() 
+def rainbow_scrolling(speed,saturation,brightness,reverse):
+    global runAnimation
+    hue=0
+    while runAnimation:
+        pix.fill(getRGB(hue,saturation,brightness))
+        pix.write()
+        if reverse:
+            hue-=1
+            if hue<=0:
+                hue+=359
+        else:
+            hue+=1
+            if hue>=360:
+                hue-=360
+        sleep_ms(int(5000/speed))
+        
+
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -327,7 +375,8 @@ def screenMode_picker_touch(x,y):
 screenMode_picker_UI()
 screenModePickerActive=True
 runAnimation=True
-color_range([100,100],[200,50],True,0.01,0.2,50,1,0.1)
+#static_rainbow(100,False,0.01,0.2,50,1,0.1,True)
+rainbow_scrolling(100,100,0.5,True)
 while True:    
     if touch[0]:
         touch[0]=False
