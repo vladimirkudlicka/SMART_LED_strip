@@ -70,29 +70,70 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
 #neopixel modes functions and other
 runAnimation=False
 pixModesFunctions=[]
+def fading(lvl,up,minBright,maxBright):
+    if up:
+        lvl+=0.01
+    else:
+        lvl-=0.01
+    if lvl>=1  and up:
+        up=False
+    elif lvl<=0 and not up:
+        up=True
+    bright=minBright+((maxBright-minBright)*((100**lvl)/100))
+    return bright,lvl,up
+
 def white(temperature,fadingActive,fminBrightness,fmaxBrightness,fspeed,brightness):
     global runAnimation
     if fadingActive:
         bright=fminBrightness
+        lvl=0
         up=True
         while runAnimation:
+            bright,lvl,up=fading(lvl,up,fminBrightness,fmaxBrightness)
             color=(int(255*bright),int((255-temperature/4)*bright),int((255-temperature)*bright))
             pix.fill(color)
-            pix.write()
-            if up:
-                bright+=0.01
-            else:
-                bright-=0.01
-            if bright>=fmaxBrightness and up:
-                up=False
-            elif bright<=fminBrightness and not up:
-                up=True
-            sleep_ms(int(5000/fspeed))
-
-
+            pix.write() 
+            sleep_ms(int((500/(fmaxBrightness-fminBrightness))/fspeed))
     else:
         color=(int(255*brightness),int((255-temperature/4)*brightness),int((255-temperature)*brightness))
         pix.fill(color)
+        pix.write()
+def monocolor(color,fadingActive,fminBright,fmaxBright,fspeed,brightness):
+    global runAnimation
+    if fadingActive:
+        bright=fminBright
+        up=True
+        lvl=0
+        while runAnimation:
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright)
+            pix.fill(getRGB(color[0],color[1],bright))
+            pix.write()
+            sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
+    else:
+        pix.fill(getRGB(color[0],color[1],brightness))
+        pix.write()
+def bicolor(color1,color2,fadingActive,fminBright,fmaxBright,fspeed,brightness):
+    global runAnimation,pixLenght
+    if fadingActive:
+        bright=fminBright
+        up=True
+        lvl=0
+        pixList=[0 for _ in range(pixLenght)]
+        for i in range(0,pixLenght,2):
+                pixList[i]=getRGB(color1[0],color1[1],1)
+        for i in range(1,pixLenght,2):
+            pixList[i]=getRGB(color2[0],color2[1],1)
+        while runAnimation:
+            bright,lvl,up=fading(lvl,up,fminBright,fmaxBright)
+            for i in range(pixLenght):
+                pix[i]=(int(pixList[i][0]*bright),int(pixList[i][1]*bright),int(pixList[i][2]*bright))
+            pix.write()
+            sleep_ms(int((500/(fmaxBright-fminBright))/fspeed))
+    else:
+        for i in range(0,pixLenght,2):
+                pix[i]=getRGB(color1[0],color1[1],brightness)
+        for i in range(1,pixLenght,2):
+            pix[i]=getRGB(color2[0],color2[1],brightness)
         pix.write()
 
 #color picker displaying + touchscreen reaction
@@ -215,29 +256,29 @@ def numKey_touch(x,y):
 #screen mode picker
 screenMode=0
 screenModePickerActive=False
-screenModeNames=['white','monocolor','bicolor','color range','static rainbow','dynamic color range','dynamic rainbow','running light-full','running light-center','stars','soundbar-monocolor','soundbar-color range','alarm settings','PIR settings']
+screenModeNames=['white','monocolor','bicolor','color range','static rainbow','rainbow scrolling','dynamic color range','dynamic rainbow','running light-full','running light-center','stars','soundbar-monocolor','soundbar-color range','alarm settings','PIR settings']
 def screenMode_picker_UI():
     global screenMode, screenModeNames
     dsp.clear()
     space=(320-(len(screenModeNames)*8))/(len(screenModeNames)+1)
     for i in range(len(screenModeNames)):
-        if i<=4:
+        if i<=5:
             c=color565(255,255,0)
-        elif i<=6:
+        elif i<=7:
             c=color565(0,255,0)
-        elif i<=8:
+        elif i<=9:
             c=color565(0,0,255)
-        elif i==9:
+        elif i==10:
             c=color565(255,0,255)
-        elif i<=11:
+        elif i<=12:
             c=color565(0,255,255)
-        elif i==12:
-            c=color565(100,255,0)
         elif i==13:
+            c=color565(100,255,0)
+        elif i==14:
             c=color565(100,0,255)
         l=len(screenModeNames[i])
         dsp.draw_text8x8(int((240-(l*8)-l+1)/2),int(space+(space+8)*i),screenModeNames[i],c)
-        if i!=13:
+        if i!=14:
             dsp.draw_hline(0,int(space+(space+8)*i+space/2+8),240,color565(255,255,255))
 def screenMode_picker_touch(x,y):
     global screenMode,screenModePickerActive,screenModeNames
@@ -251,7 +292,7 @@ def screenMode_picker_touch(x,y):
 screenMode_picker_UI()
 screenModePickerActive=True
 runAnimation=True
-white(0,True,0.05,0.5,100,1)
+bicolor([100,100],[200,100],True,0.01,0.2,50,0.1)
 while True:    
     if touch[0]:
         touch[0]=False
