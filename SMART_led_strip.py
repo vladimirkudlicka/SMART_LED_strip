@@ -453,18 +453,71 @@ def stars(speed,stars_count,max_brightness):
             if starList[i][4]<=0 and not starList[i][5]:
                 posList.pop(posList.index(starList[i][0]))
                 pix[starList[i][0]]=(0,0,0)
+                sleep_ms(1)
             else:
                 pix[starList[i][0]]=getRGB(starList[i][1],starList[i][2],starList[i][4]/100)
+                sleep_ms(1)
                 starList2.append(starList[i])    
         starList=starList2.copy() 
         print(starList)
         print(posList)   
         pix.write()
         sleep_ms(int(500/speed))
+def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
+    global runAnimation, pixLength 
+    if orientation==2:
+        if pixLength%2==0:
+            start1=int(pixLength/2)-1
+            start2=int(pixLength/2)
+            pixLength2=start1+1
+        else:
+            start1=int(pixLength/2)
+            start2=int(pixLength/2)
+            pixLength2=start1+1
+        sound_lvl_step=max_soundval/pixLength2
+        while runAnimation:
+            pix.fill((0,0,0))
+            sound_val=sound_lvl()
+            length=sound_val//sound_lvl_step
+            bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
+            if length>pixLength2:
+                length=pixLength2
+            for i in range(start2,start2+length):
+                pix[i]=getRGB(color[0],color[1],max_brightness)
+            if i+1<pixLength:
+                pix[i+1]=getRGB(color[0],color[1],bright)
+            for i in range(start1,start1-length,-1):
+                pix[i]=getRGB(color[0],color[1],max_brightness)
+            if i-1>=0:
+                pix[i-1]=getRGB(color[0],color[1],bright)
+            pix.write()
+            sleep_ms(5)
+    else:
+        sound_lvl_step=max_soundval/pixLength
+        while runAnimation:
+            pix.fill((0,0,0))
+            sound_val=sound_lvl()
+            length=sound_val//sound_lvl_step
+            bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
+            if length>pixLength:
+                length=pixLength
+            for i in range(0,length):
+                if orientation==0:
+                    a=i
+                else:
+                    a=pixLength-1-i
+                pix[a]=getRGB(color[0],color[1],max_brightness)
+            if orientation==0:
+                if a+1<pixLength:
+                    pix[a+1]=getRGB(color[0],color[1],bright)
+            else:
+                if a-1>=0:
+                    pix[a-1]=getRGB(color[0],color[1],bright)
+            pix.write()
+            sleep_ms(5)
+        
 
-
-
-pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center]      
+pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars]      
 
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
@@ -633,7 +686,8 @@ runAnimation=True
 #color_picker_UI()
 #colorPickerData[0]=True
 #color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
-stars(10,3,0.5)
+#stars(10,3,0.5)
+soundbar_monocolor([200,100],1000,2,0.5)
 while True:    
     if touch[0]:
         touch[0]=False
