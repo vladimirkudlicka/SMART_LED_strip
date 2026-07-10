@@ -1,15 +1,20 @@
+#general
 from machine import SPI,SoftSPI, Pin, ADC,RTC
+from time import sleep,sleep_ms
+#dislay
 from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
 from xtp2046 import Touch
 import framebuf
 import math
+#WiFi and internet
 import SECRETS
 import network
 import ntptime
 import socket
+#neopixel
 import neopixel
-from time import sleep,sleep_ms
-import neopixel
+import random
+
 #display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
 dsp=Display(dspSPI,cs=Pin(5),rst=Pin(22),dc=Pin(17),rotation=270)
@@ -32,6 +37,7 @@ dsp.draw_text8x8(20,160, 'starting SMART LED system', color565(255,255,255))
 dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 #sensors config
 sound=ADC(Pin(34))
+random_seed_src=ADC(Pin(36))#leave this pin unconnected
 #NeoPixel config
 pixLength=8
 pix=neopixel.NeoPixel(Pin(21),pixLength)
@@ -39,6 +45,13 @@ pix.fill((0,0,0))
 pix.write()
 sleep(2)
 #connecting to WiFi
+#noise sensor function
+def sound_lvl():
+    global sound
+    quiet=1127.6624
+    raw=sound.read_u16()
+    processed=abs(raw-quiet)
+    return processed
 #Color generator
 #soure:https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (it was modified by my to contain brightnes, saturation and I flipped the color wheel)
 def getRGB(deg,sat,brightness):#sat=saturation(0-100)
@@ -402,8 +415,54 @@ def running_light_center(color,tracewidth,brightness,style,speed):
             pix[i]=getRGB(color[0],color[1],brightness/(1+pos2-i))
         pix.write()
         sleep_ms(int(5000/speed))
+def stars(speed,stars_count,max_brightness):
+    global runAnimation,pixLength
+    max_brightness=int(max_brightness*100)
+    random.seed(random_seed_src.read_u16())
+    if random.randint(0,5)==2:
+        sat=100
+    else:
+        sat=random.randint(50,99)
+    max_bright=round((max_brightness/2)+((max_brightness/2)*random.random()))
+    pos=random.randint(0,pixLength-1)
+    posList=[pos]
+    starList=[[pos,random.randint(0,359),sat,max_bright,0,True]]#index,Hue,saturation,max_brigthness,current brightnes,up
+    pix.fill((0,0,0))
+    while runAnimation:
+        if len(starList)<stars_count:
+            if random.randint(0,stars_count-(stars_count-len(starList)))==1:
+                if random.randint(0,5)==2:
+                    sat=100
+                else:
+                    sat=random.randint(50,99)
+                pos=random.randint(0,pixLength-1)
+                while pos in posList:
+                    pos=random.randint(0,pixLength-1)
+                posList.append(pos)
+                max_bright=round((max_brightness/2)+((max_brightness/2)*random.random()))    
+                star=[pos,random.randint(0,359),sat,max_bright,0,True]
+                starList.append(star)
+        starList2=[]
+        for i in range(len(starList)):
+            if starList[i][5]:
+                starList[i][4]+=1
+            else:
+                starList[i][4]-=1
+            if starList[i][4]>=starList[i][3] and starList[i][5]:
+                starList[i][5]=False
+            if starList[i][4]<=0 and not starList[i][5]:
+                posList.pop(posList.index(starList[i][0]))
+                pix[starList[i][0]]=(0,0,0)
+            else:
+                pix[starList[i][0]]=getRGB(starList[i][1],starList[i][2],starList[i][4]/100)
+                starList2.append(starList[i])    
+        starList=starList2.copy() 
+        print(starList)
+        print(posList)   
+        pix.write()
+        sleep_ms(int(500/speed))
 
-        
+
 
 pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center]      
 
@@ -570,10 +629,11 @@ def screenMode_picker_touch(x,y):
 runAnimation=True
 #dynamic_color_range([100,100],[200,100],1000,0,1,False)
 #dynamic_rainbow(100,1000,0,1,False)
-#running_light_full([100,100],1,0.2,2,10)
+#running_light_full([100,100],1,0.1,2,10)
 #color_picker_UI()
 #colorPickerData[0]=True
-color_range([120,100],[240,100],True,0.2,0.5,100,1,0.1,False)
+#color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
+stars(10,3,0.5)
 while True:    
     if touch[0]:
         touch[0]=False
