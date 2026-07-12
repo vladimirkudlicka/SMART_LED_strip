@@ -86,7 +86,7 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
         R=1
         G=1-m*(deg-300)
         B=0
-    myColor=(int(((R*sat*255)+(255*(1-sat)))*brightness),int(((G*sat*255)+(255*(1-sat)))*brightness),int(((B*sat*255)+(255*(1-sat)))*brightness))
+    myColor=(math.ceil(((R*sat*255)+(255*(1-sat)))*brightness),math.ceil(((G*sat*255)+(255*(1-sat)))*brightness),math.ceil(((B*sat*255)+(255*(1-sat)))*brightness))
     return myColor
 #neopixel modes functions and support functions
 runAnimation=False
@@ -482,10 +482,14 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
             bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
             if length>pixLength2:
                 length=pixLength2
+            if length==0:
+                i=start2
             for i in range(start2,start2+length):
                 pix[i]=getRGB(color[0],color[1],max_brightness)
             if i+1<pixLength:
                 pix[i+1]=getRGB(color[0],color[1],bright)
+            if length==0:
+                i=start1
             for i in range(start1,start1-length,-1):
                 pix[i]=getRGB(color[0],color[1],max_brightness)
             if i-1>=0:
@@ -501,6 +505,13 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
             bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
             if length>pixLength:
                 length=pixLength
+            if length==0:
+                if orientation==0:
+                    a=0
+                    i=0
+                else:
+                    a=pixLength-1
+                    i=0
             for i in range(0,length):
                 if orientation==0:
                     a=i
@@ -515,10 +526,119 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
                     pix[a-1]=getRGB(color[0],color[1],bright)
             pix.write()
             sleep_ms(5)
-        
+def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,reversed):
+    global runAnimation,pixLength
+    if color2[0]<color1[0]:
+            color2[0]+=360 
+    if orientation==2:
+        if pixLength%2==0:
+            start1=int(pixLength/2)-1
+            start2=int(pixLength/2)
+            pixLength2=start1+1
+        else:
+            start1=int(pixLength/2)
+            start2=int(pixLength/2)
+            pixLength2=start1+1
+        sound_lvl_step=max_soundval/pixLength2
+        satStep=(color2[1]-color1[1])/(pixLength2-1)
+        hueStep=(color2[0]-color1[0])/(pixLength2-1)
+        while runAnimation:
+            pix.fill((0,0,0))
+            sound_val=sound_lvl()
+            length=sound_val//sound_lvl_step
+            bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
+            if length>pixLength2:
+                length=pixLength2
+            if length==0:
+                i=start2
+            for i in range(start2,start2+length):
+                if reversed:
+                    hue=color2[0]-hueStep*(i-start2)
+                    sat=color2[1]-satStep*(i-start2)
+                else:
+                    hue=color1[0]+hueStep*(i-start2)
+                    sat=color1[1]+satStep*(i-start2)
+                pix[i]=getRGB(hue,sat,max_brightness)
+            if i+1<pixLength:
+                if reversed:
+                    hue=color2[0]-hueStep*(i-start2+1)
+                    sat=color2[1]-satStep*(i-start2+1)
+                else:
+                    hue=color1[0]+hueStep*(i-start2+1)
+                    sat=color1[1]+satStep*(i-start2+1)
+                pix[i+1]=getRGB(hue,sat,bright)
+            if length==0:
+                i=start1    
+            for i in range(start1,start1-length,-1):
+                if reversed:
+                    hue=color2[0]-hueStep*(start1-i)
+                    sat=color2[1]-satStep*(start1-i)
+                else:
+                    hue=color1[0]+hueStep*(start1-i)
+                    sat=color1[1]+satStep*(start1-i)
+                pix[i]=getRGB(hue,sat,max_brightness)
+            if i-1>=0:
+                if reversed:
+                    hue=color2[0]-hueStep*(start1-i+1)
+                    sat=color2[1]-satStep*(start1-i+1)
+                else:
+                    hue=color1[0]+hueStep*(start1-i+1)
+                    sat=color1[1]+satStep*(start1-i+1)
+                pix[i-1]=getRGB(hue,sat,bright)
+            pix.write()
+            sleep_ms(5)
+    else:
+        sound_lvl_step=max_soundval/pixLength
+        satStep=(color2[1]-color1[1])/(pixLength-1)
+        hueStep=(color2[0]-color1[0])/(pixLength-1)
+        while runAnimation:
+            pix.fill((0,0,0))
+            sound_val=sound_lvl()
+            length=sound_val//sound_lvl_step
+            bright=max_brightness*0.1+0.9*max_brightness*sound_val%sound_lvl_step
+            if length>pixLength:
+                length=pixLength
+            if length==0:
+                if orientation==0:
+                    a=0
+                    i=0
+                else:
+                    a=pixLength-1
+                    i=0
+            for i in range(0,length):
+                if orientation==0:
+                    a=i
+                else:
+                    a=pixLength-1-i
+                if reversed:
+                    hue=color2[0]-hueStep*i
+                    sat=color2[1]-satStep*i
+                else:
+                    hue=color1[0]+hueStep*i
+                    sat=color1[1]+satStep*i
+                pix[a]=getRGB(hue,sat,max_brightness)
+            if orientation==0:
+                if a+1<pixLength:
+                    if reversed:
+                        hue=color2[0]-hueStep*(i+1)
+                        sat=color2[1]-satStep*(i+1)
+                    else:
+                        hue=color1[0]+hueStep*(i+1)
+                        sat=color1[1]+satStep*(i+1)
+                    pix[a+1]=getRGB(hue,sat,bright)
+            else:
+                if a-1>=0:
+                    if reversed:
+                        hue=color2[0]-hueStep*(i-1)
+                        sat=color2[1]-satStep*(i-1)
+                    else:
+                        hue=color1[0]+hueStep*(i-1)
+                        sat=color1[1]+satStep*(i-1)
+                    pix[a-1]=getRGB(hue,sat,bright)
+            pix.write()
+            sleep_ms(5)
 
-pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars]      
-
+pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars,soundbar_monocolor,soundbar_color_range]      
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -686,8 +806,9 @@ runAnimation=True
 #color_picker_UI()
 #colorPickerData[0]=True
 #color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
-#stars(10,3,0.5)
-soundbar_monocolor([200,100],1000,2,0.5)
+#stars(50,3,0.5)
+#soundbar_monocolor([200,100],1000,2,0.5)
+soundbar_color_range([0,100],[100,100],1000,2,0.5,True)
 while True:    
     if touch[0]:
         touch[0]=False
