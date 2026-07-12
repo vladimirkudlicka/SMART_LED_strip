@@ -524,13 +524,13 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
             if length>pixLength2:
                 length=pixLength2
             if length==0:
-                i=start2
+                i=start2-1
             for i in range(start2,start2+length):
                 pix[i]=getRGB(color[0],color[1],max_brightness)
             if i+1<pixLength:
                 pix[i+1]=getRGB(color[0],color[1],bright)
             if length==0:
-                i=start1
+                i=start1+1
             for i in range(start1,start1-length,-1):
                 pix[i]=getRGB(color[0],color[1],max_brightness)
             if i-1>=0:
@@ -548,11 +548,11 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
                 length=pixLength
             if length==0:
                 if orientation==0:
-                    a=0
-                    i=0
+                    a=-1
+                    i=-1
                 else:
-                    a=pixLength-1
-                    i=0
+                    a=pixLength
+                    i=-1
             for i in range(0,length):
                 if orientation==0:
                     a=i
@@ -591,7 +591,7 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
             if length>pixLength2:
                 length=pixLength2
             if length==0:
-                i=start2
+                i=start2-1
             for i in range(start2,start2+length):
                 if reversed:
                     hue=color2[0]-hueStep*(i-start2)
@@ -609,7 +609,7 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
                     sat=color1[1]+satStep*(i-start2+1)
                 pix[i+1]=getRGB(hue,sat,bright)
             if length==0:
-                i=start1    
+                i=start1+1  
             for i in range(start1,start1-length,-1):
                 if reversed:
                     hue=color2[0]-hueStep*(start1-i)
@@ -641,11 +641,11 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
                 length=pixLength
             if length==0:
                 if orientation==0:
-                    a=0
-                    i=0
+                    a=-1
+                    i=-1
                 else:
-                    a=pixLength-1
-                    i=0
+                    a=pixLength
+                    i=-1
             for i in range(0,length):
                 if orientation==0:
                     a=i
@@ -670,11 +670,11 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
             else:
                 if a-1>=0:
                     if reversed:
-                        hue=color2[0]-hueStep*(i-1)
-                        sat=color2[1]-satStep*(i-1)
+                        hue=color2[0]-hueStep*(i+1)
+                        sat=color2[1]-satStep*(i+1)
                     else:
-                        hue=color1[0]+hueStep*(i-1)
-                        sat=color1[1]+satStep*(i-1)
+                        hue=color1[0]+hueStep*(i+1)
+                        sat=color1[1]+satStep*(i+1)
                     pix[a-1]=getRGB(hue,sat,bright)
             pix.write()
             sleep_ms(5)
@@ -849,7 +849,8 @@ runAnimation=True
 #colorPickerData[0]=True
 #color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
 #stars(50,3,0.5)
-#soundbar_monocolor([200,100],1000,2,0.5)
+callibrate_sound_sensor()
+soundbar_monocolor([200,100],1000,2,0.5)
 #soundbar_color_range([0,100],[100,100],1000,2,0.5,True) 
 while True:    
     if touch[0]:
