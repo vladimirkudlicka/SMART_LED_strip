@@ -1,6 +1,7 @@
 #general
-from machine import SPI,SoftSPI, Pin, ADC,RTC
-from time import sleep,sleep_ms
+from machine import SPI,SoftSPI, Pin, ADC,RTC,reset
+from time import sleep,sleep_ms,time,localtime
+import gc
 #dislay
 from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
 from xtp2046 import Touch
@@ -9,8 +10,8 @@ import math
 #WiFi and internet
 import SECRETS
 import network
-import ntptime
 import socket
+import ntptime
 #neopixel
 import neopixel
 import random
@@ -34,7 +35,7 @@ touchSPI=SPI(1,baudrate=1000000)
 touchscreen=Touch(touchSPI, cs=Pin(26), int_pin=Pin(27),int_handler=touched)
 touch=[False,0,0]
 #initiation sequence
-dsp.draw_text8x8(20,160, 'starting SMART LED system', color565(255,255,255))
+dsp.draw_text8x8(20,156, 'starting SMART LED system', color565(255,255,255))
 dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 #sensors config
 sound=ADC(Pin(34))
@@ -46,6 +47,38 @@ pix.fill((0,0,0))
 pix.write()
 sleep(2)
 #connecting to WiFi
+dsp.fill_hrect(19,151,220,20,0)
+dsp.draw_text8x8(39,156,'Connecting to WiFi',color565(255,255,255))
+wifi=network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect(SECRETS.SSID,SECRETS.PWD)
+n=0
+while not wifi.isconnected() and n<20:
+    sleep(1)
+    n+=1
+dsp.fill_hrect(19,151,220,20,0)
+dsp.fill_hrect(74,299,165,10,0)
+if wifi.isconnected():
+    dsp.draw_text8x8(21,143,'Connected succesfully!',color565(255,255,255))
+    IP=wifi.ifconfig()[0] 
+    dsp.draw_text8x8(20,161,'IP: '+IP,color565(255,255,255))
+    print(IP)
+else:
+    dsp.draw_text8x8(39,143,'Connection failed.',color565(255,255,255))
+    dsp.draw_text8x8(71,161,'Reseting...',color565(255,255,255))
+    sleep(5)
+    reset()
+#time setup
+import urequests
+response=urequests.get('http://ip-api.com/json/?fields=timezone,offset')
+rData=response.json()
+response.close()
+del urequests
+ntptime.settime()
+rtc=RTC()
+tm=time()+rData['offset']
+dtmt=localtime(tm)
+rtc.datetime((dtmt[0],dtmt[1],dtmt[2],dtmt[7],dtmt[3],dtmt[4],dtmt[5],0))
 #noise sensor function
 quiet_sound_lvl=1127.6624
 def callibrate_sound_sensor():
@@ -694,6 +727,7 @@ def color_picker_UI():
     dspLED.on()
     dsp.draw_rectangle(150,270,90,50,color565(255,255,255))
     dsp.draw_text8x8(164,291, 'Confirm', color565(255,255,255))
+    cw=0
 def color_picker_touch(x,y):
     global selected_color, colorPickerData,pixColors
     r=100
@@ -816,7 +850,7 @@ runAnimation=True
 #color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
 #stars(50,3,0.5)
 #soundbar_monocolor([200,100],1000,2,0.5)
-#soundbar_color_range([0,100],[100,100],1000,2,0.5,True)
+#soundbar_color_range([0,100],[100,100],1000,2,0.5,True) 
 while True:    
     if touch[0]:
         touch[0]=False
