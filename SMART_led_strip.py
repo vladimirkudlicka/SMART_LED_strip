@@ -14,6 +14,7 @@ import socket
 #neopixel
 import neopixel
 import random
+import _thread
 
 #display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
@@ -46,11 +47,18 @@ pix.write()
 sleep(2)
 #connecting to WiFi
 #noise sensor function
+quiet_sound_lvl=1127.6624
+def callibrate_sound_sensor():
+    global quiet_sound_lvl
+    data=list()
+    for i in range(1000):
+        data.append(sound.read_u16())
+        sleep_ms(1)
+    quiet_sound_lvl=sum(data)/len(data)
 def sound_lvl():
-    global sound
-    quiet=1127.6624
+    global quiet_sound_lvl
     raw=sound.read_u16()
-    processed=abs(raw-quiet)
+    processed=abs(raw-quiet_sound_lvl)
     return processed
 #Color generator
 #soure:https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (it was modified by my to contain brightnes, saturation and I flipped the color wheel)
@@ -808,7 +816,7 @@ runAnimation=True
 #color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
 #stars(50,3,0.5)
 #soundbar_monocolor([200,100],1000,2,0.5)
-soundbar_color_range([0,100],[100,100],1000,2,0.5,True)
+#soundbar_color_range([0,100],[100,100],1000,2,0.5,True)
 while True:    
     if touch[0]:
         touch[0]=False
