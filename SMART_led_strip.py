@@ -79,6 +79,7 @@ rtc=RTC()
 tm=time()+rData['offset']
 dtmt=localtime(tm)
 rtc.datetime((dtmt[0],dtmt[1],dtmt[2],dtmt[7],dtmt[3],dtmt[4],dtmt[5],0))
+dsp.clear()
 #noise sensor function
 quiet_sound_lvl=1127.6624
 def callibrate_sound_sensor():
@@ -341,6 +342,7 @@ def dynamic_rainbow(saturation,speed,direction,brightness,reverse):
             pix[i]=getRGB(pixList[i],saturation,brightness)
         pix.write()
         sleep_ms(int(5000/speed))
+#animation cathegory
 def  running_light_full(color,tracewidth,brightness,style,speed):
     global runAnimation, pixLength
     if style==0 or style==2:
@@ -456,6 +458,7 @@ def running_light_center(color,tracewidth,brightness,style,speed):
             pix[i]=getRGB(color[0],color[1],brightness/(1+pos2-i))
         pix.write()
         sleep_ms(int(5000/speed))
+#stars  mode
 def stars(speed,stars_count,max_brightness):
     global runAnimation,pixLength
     max_brightness=int(max_brightness*100)
@@ -504,6 +507,7 @@ def stars(speed,stars_count,max_brightness):
         print(posList)   
         pix.write()
         sleep_ms(int(500/speed))
+#soundbar cathegory
 def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
     global runAnimation, pixLength 
     if orientation==2:
@@ -839,23 +843,46 @@ def screenMode_picker_touch(x,y):
     print(i)
     screenMode=i
     screenModePickerActive=False
-#screenMode_picker_UI()
-#screenModePickerActive=True
-runAnimation=True
-#dynamic_color_range([100,100],[200,100],1000,0,1,False)
-#dynamic_rainbow(100,1000,0,1,False)
-#running_light_full([100,100],1,0.1,2,10)
-#color_picker_UI()
-#colorPickerData[0]=True
-#color_range([120,100],[240,100],True,0.2,0.5,100,1,0.05,False)
-#stars(50,3,0.5)
-callibrate_sound_sensor()
-soundbar_monocolor([200,100],1000,2,0.5)
-#soundbar_color_range([0,100],[100,100],1000,2,0.5,True) 
-while True:    
+#settings displaying function
+def display_settings():
+    global screenMode,screenModeNames
+    whitec=color565(255,255,255)
+    dtm=rtc.datetime()
+    weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    dsp.clear()
+    dsp.fill_hrect(0,0,240,8,0)
+    dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',whitec)
+    dsp.draw_rectangle(0,10,240,12,whitec)
+    a=screenModeNames[screenMode]
+    dsp.draw_text8x8(int((240-len(a)*9+1)/2),12,a,whitec)
+    dsp.draw_text8x8(0,24,'Brightness:',whitec)
+    dsp.draw_hline(10,40,220,whitec)
+    dsp.fill_circle(int(pixParams[0]*220),40,5,whitec)
+    if screenMode<=11:
+        dsp.draw_rectangle(0,300,240,20,whitec)
+        dsp.draw_text8x8(84,306,'Run mode',whitec)
+#settings touch processing
+def settings_touch(x,y):
+    global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive
+    if y>=10 and y<=22:
+        screenMode_picker_UI()
+        screenModePickerActive=True
+    elif y>=35 and y<=45 and x>=10 and x <=230:
+        pixParams[0]=(x-10)/220
+        print(pixParams[0])
+        display_settings()
+display_settings()
+lm=rtc.datetime()[5]
+while True:
+    dtm=rtc.datetime()
+    if lm!=dtm[5]:
+        lm=dtm[5]
+        weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+        dsp.fill_hrect(0,0,240,8,0)
+        dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',color565(255,255,255))
     if touch[0]:
         touch[0]=False
-        print(touch[1],touch[2],'Sound lvl:',sound.read_u16() )
+        #print(touch[1],touch[2],'Sound lvl:',sound.read_u16() )
         if colorPickerData[0]:
             color_picker_touch(touch[1],touch[2])
             print(pixColors)
@@ -863,4 +890,6 @@ while True:
             numKey_touch(touch[1],touch[2])
         elif screenModePickerActive:
             screenMode_picker_touch(touch[1],touch[2])
+        else:
+            settings_touch(touch[1],touch[2])
     sleep(0.1)
