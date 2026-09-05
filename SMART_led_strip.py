@@ -1,7 +1,6 @@
 #general
 from machine import SPI,SoftSPI, Pin, ADC,RTC,reset
 from time import sleep,sleep_ms,time,localtime
-import gc
 #dislay
 from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
 from xtp2046 import Touch
@@ -141,6 +140,7 @@ wifiBrightnessVal=0
 def getBrightness(rng):
     global wifiBrightness,lastNonWiFipotVal,wifiBrightnessVal
     potVal=BrightPot.read_u16()
+    print(potVal)
     if not wifiBrightness:
         lastNonWiFipotVal=potVal
         return round((potVal/65535)*rng,2)
@@ -180,7 +180,7 @@ def white(temperature,fadingActive,fminBrightness,fspeed,fadetype):
             sleep_ms(int((500/fspeed)))
     else:
         while runAnimation:
-            brightness=getBrightness(1)
+            brightness=0.05+0.95*getBrightness(0.95)
             color=(int(255*brightness),int((255-temperature/4)*brightness),int((255-temperature)*brightness))
             pix.fill(color)
             pix.write()
@@ -199,7 +199,7 @@ def monocolor(color,fadingActive,fminBright,fspeed,fadetype):
             sleep_ms(int(500/fspeed))
     else:
         while runAnimation:
-            brightness=getBrightness(1)
+            brightness=0.05+0.95*getBrightness(0.95)
             pix.fill(getRGB(color[0],color[1],brightness))
             pix.write()
             sleep_ms(10)
@@ -223,7 +223,7 @@ def bicolor(color1,color2,fadingActive,fminBright,fspeed,fadetype):
             sleep_ms(int(500/fspeed))
     else:
         while runAnimation:
-            brigthness=getBrightness(1)
+            brigthness=0.05+0.95*getBrightness(0.95)
             for i in range(pixLength):
                 pix[i]=(math.ceil(pixList[i][0]*brigthness),math.ceil(pixList[i][1]*brigthness),math.ceil(pixList[i][2]*brigthness))
             pix.write()
@@ -280,7 +280,7 @@ def static_rainbow(saturation,fadingActive,fminBright,fspeed,fadetype,reverse):
             sleep_ms(int(500/fspeed))
     else:
         while runAnimation:
-            brigthness=getBrightness(1)
+            brigthness=0.05+0.95*getBrightness(0.95)
             for i in range(pixLength):
                 pix[i]=(math.ceil(pixList[i][0]*brigthness),math.ceil(pixList[i][1]*brigthness),math.ceil(pixList[i][2]*brigthness)) 
         pix.write() 
@@ -328,7 +328,7 @@ def dynamic_color_range(color1,color2,speed,direction,reverse):
     if reverse:
         pixList.reverse()
     while runAnimation:
-        brightness=getBrightness(1)
+        brightness=0.05+0.95*getBrightness(0.95)
         for i in range(pixLength):
             if direction==0:
                 pixList[i][0]+=1               
@@ -355,7 +355,7 @@ def dynamic_rainbow(saturation,speed,direction,reverse):
     if reverse:
         pixList.reverse()               
     while runAnimation:
-        brightness=getBrightness
+        brightness=0.05+0.95*getBrightness(0.95)
         for i in range(pixLength):
             if direction==0:
                 pixList[i]+=1
@@ -369,7 +369,7 @@ def dynamic_rainbow(saturation,speed,direction,reverse):
         pix.write()
         sleep_ms(int(5000/speed))
 #animation cathegory
-def  running_light_full(color,tracewidth,brightness,style,speed):
+def  running_light_full(color,tracewidth,style,speed):
     global runAnimation, pixLength
     if style==0 or style==2:
         pos=0
@@ -378,6 +378,7 @@ def  running_light_full(color,tracewidth,brightness,style,speed):
         pos=pixLength-1
         up = False
     while runAnimation:
+        brightness=0.05+0.95*getBrightness(0.95)
         pix.fill((0,0,0))
         if up:
             pos+=1
@@ -407,7 +408,7 @@ def  running_light_full(color,tracewidth,brightness,style,speed):
             pix[i]=getRGB(color[0],color[1],brightness/(1+pos-i))
         pix.write()
         sleep_ms(int(5000/speed))
-def running_light_center(color,tracewidth,brightness,style,speed):
+def running_light_center(color,tracewidth,style,speed):
     global runAnimation,pixLength
     if pixLength%2==0:
         start1=int(pixLength/2)-1
@@ -427,6 +428,7 @@ def running_light_center(color,tracewidth,brightness,style,speed):
         up2 = False
         up1=True
     while runAnimation:
+        brightness=0.05+0.95*getBrightness(0.95)
         pix.fill((0,0,0))
         if up1:
             pos1+=1
@@ -485,20 +487,20 @@ def running_light_center(color,tracewidth,brightness,style,speed):
         pix.write()
         sleep_ms(int(5000/speed))
 #stars  mode
-def stars(speed,stars_count,max_brightness):
+def stars(speed,stars_count): 
     global runAnimation,pixLength
-    max_brightness=int(max_brightness*100)
     random.seed(random_seed_src.read_u16())
     if random.randint(0,5)==2:
         sat=100
     else:
         sat=random.randint(50,99)
-    max_bright=round((max_brightness/2)+((max_brightness/2)*random.random()))
+    max_blvl=round(50+50*random.random())
     pos=random.randint(0,pixLength-1)
     posList=[pos]
-    starList=[[pos,random.randint(0,359),sat,max_bright,0,True]]#index,Hue,saturation,max_brigthness,current brightnes,up
+    starList=[[pos,random.randint(0,359),sat,max_blvl,0,True]]#index,Hue,saturation,max_brigthness level,current brightnes level,up
     pix.fill((0,0,0))
     while runAnimation:
+        brightness=0.05+0.95*getBrightness(0.95)
         if len(starList)<stars_count:
             if random.randint(0,stars_count-(stars_count-len(starList)))==1:
                 if random.randint(0,5)==2:
@@ -509,8 +511,8 @@ def stars(speed,stars_count,max_brightness):
                 while pos in posList:
                     pos=random.randint(0,pixLength-1)
                 posList.append(pos)
-                max_bright=round((max_brightness/2)+((max_brightness/2)*random.random()))    
-                star=[pos,random.randint(0,359),sat,max_bright,0,True]
+                max_blvl=round(50+50*random.random()) 
+                star=[pos,random.randint(0,359),sat,max_blvl,0,True]
                 starList.append(star)
         starList2=[]
         for i in range(len(starList)):
@@ -525,16 +527,16 @@ def stars(speed,stars_count,max_brightness):
                 pix[starList[i][0]]=(0,0,0)
                 sleep_ms(1)
             else:
-                pix[starList[i][0]]=getRGB(starList[i][1],starList[i][2],starList[i][4]/100)
+                pix[starList[i][0]]=getRGB(starList[i][1],starList[i][2],(starList[i][4]/100)*brightness)
                 sleep_ms(1)
                 starList2.append(starList[i])    
         starList=starList2.copy() 
-        print(starList)
-        print(posList)   
+        #print(starList)
+        #print(posList)   
         pix.write()
         sleep_ms(int(500/speed))
 #soundbar cathegory
-def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
+def soundbar_monocolor(color,max_soundval,orientation):
     global runAnimation, pixLength 
     if orientation==2:
         if pixLength%2==0:
@@ -547,6 +549,7 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
             pixLength2=start1+1
         sound_lvl_step=max_soundval/pixLength2
         while runAnimation:
+            max_brightness=0.05+0.95*getBrightness(0.95)
             pix.fill((0,0,0))
             sound_val=sound_lvl()
             length=sound_val//sound_lvl_step
@@ -570,6 +573,7 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
     else:
         sound_lvl_step=max_soundval/pixLength
         while runAnimation:
+            max_brightness=0.05+0.95*getBrightness(0.95)
             pix.fill((0,0,0))
             sound_val=sound_lvl()
             length=sound_val//sound_lvl_step
@@ -597,7 +601,7 @@ def soundbar_monocolor(color,max_soundval,orientation,max_brightness):
                     pix[a-1]=getRGB(color[0],color[1],bright)
             pix.write()
             sleep_ms(5)
-def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,reversed):
+def soundbar_color_range(color1,color2,max_soundval,orientation,reversed):
     global runAnimation,pixLength
     if color2[0]<color1[0]:
             color2[0]+=360 
@@ -614,6 +618,7 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
         satStep=(color2[1]-color1[1])/(pixLength2-1)
         hueStep=(color2[0]-color1[0])/(pixLength2-1)
         while runAnimation:
+            max_brightness=0.05+0.95*getBrightness(0.95)
             pix.fill((0,0,0))
             sound_val=sound_lvl()
             length=sound_val//sound_lvl_step
@@ -663,6 +668,7 @@ def soundbar_color_range(color1,color2,max_soundval,orientation,max_brightness,r
         satStep=(color2[1]-color1[1])/(pixLength-1)
         hueStep=(color2[0]-color1[0])/(pixLength-1)
         while runAnimation:
+            max_brightness=0.05+0.95*getBrightness(0.95)
             pix.fill((0,0,0))
             sound_val=sound_lvl()
             length=sound_val//sound_lvl_step
@@ -873,6 +879,7 @@ def screenMode_picker_touch(x,y):
 def display_settings():
     global screenMode,screenModeNames
     whitec=color565(255,255,255)
+    #datetime info
     dtm=rtc.datetime()
     weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
     dsp.clear()
@@ -880,10 +887,7 @@ def display_settings():
     dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',whitec)
     dsp.draw_rectangle(0,10,240,12,whitec)
     a=screenModeNames[screenMode]
-    dsp.draw_text8x8(int((240-len(a)*9+1)/2),12,a,whitec)
-    dsp.draw_text8x8(0,24,'Brightness:',whitec)
-    dsp.draw_hline(10,40,220,whitec)
-    dsp.fill_circle(int(pixParams[0]*220),40,5,whitec)
+    dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),11,a,whitec)
     if screenMode<=11:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -893,10 +897,6 @@ def settings_touch(x,y):
     if y>=10 and y<=22:
         screenMode_picker_UI()
         screenModePickerActive=True
-    elif y>=35 and y<=45 and x>=10 and x <=230:
-        pixParams[0]=(x-10)/220
-        print(pixParams[0])
-        display_settings()
 display_settings()
 lm=rtc.datetime()[5]
 while True:
