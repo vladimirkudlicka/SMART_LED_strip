@@ -793,7 +793,7 @@ def color_picker_touch(x,y):
 #numeric keyboard
 selected_num=''
 numKeyData=[False,0]#active flag, pixData list index
-pixParams=[0,0,0,0,0]
+pixParams=[0,0,0,0,0,0,0,0,0,0,0]
 numKeyLayout=[['1','2','3'],['4','5','6'],['7','8','9'],['C','0','OK']]
 def numKey_UI():
     global numKeyLayout
@@ -840,7 +840,7 @@ def numKey_touch(x,y):
             l=len(selected_num)
             dsp.draw_text8x8(int((240-l*8-l+1)/2),18,selected_num,color565(255,255,255))
 #screen mode picker
-screenMode=0
+screenMode=2
 screenModePickerActive=False
 screenModeNames=['white','monocolor','bicolor','color range','static rainbow','rainbow scrolling','dynamic color range','dynamic rainbow','running light-full','running light-center','stars','soundbar-monocolor','soundbar-color range','alarm settings','PIR settings']
 def screenMode_picker_UI():
@@ -876,8 +876,13 @@ def screenMode_picker_touch(x,y):
     screenMode=i
     screenModePickerActive=False
 #settings displaying function
+def display_param_line(x0,y0,paramName,paramValue):
+    whitec=color565(255,255,255)
+    dsp.draw_text8x8(x0,y0+6,paramName,whitec)
+    dsp.draw_rectangle(180,y0,55,20,whitec)  
+    dsp.draw_text8x8(int(180+((60-len(paramValue)*9)/2)-1),y0+6,paramValue,whitec)
 def display_settings():
-    global screenMode,screenModeNames
+    global screenMode,screenModeNames,pixParams
     whitec=color565(255,255,255)
     #datetime info
     dtm=rtc.datetime()
@@ -887,7 +892,37 @@ def display_settings():
     dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',whitec)
     dsp.draw_rectangle(0,10,240,12,whitec)
     a=screenModeNames[screenMode]
-    dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),11,a,whitec)
+    dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),12,a,whitec)
+    if screenMode<5:
+        fading_on=str(pixParams[0])
+        fminBrightness=str(round(pixParams[1],2)*100)
+        fadetypes={'0':'linear','1':'exp.'}
+        boolnames={'0':'OFF','1':'ON'}
+        fadetype=str(pixParams[2])
+        fspeed=str(pixParams[5])
+        
+        dsp.draw_text8x8(0,25,'Fading settings:',whitec)
+
+        display_param_line(5,35,'Fading active:',boolnames[fading_on])
+        display_param_line(5,60,'Fade type:',fadetypes[fadetype])
+        display_param_line(5,85,'Min. Brightness 0-100:',fminBrightness)
+        display_param_line(5,110,'Fading speed:',fspeed)
+
+    if screenMode==0:
+        display_param_line(0,135,'Temperature',str(pixParams[3]))
+    elif screenMode==1:
+        R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
+        dsp.fill_hrect(0,150,240,100,color565(R,G,B))
+        dsp.draw_text8x8(98,196,'COLOR',0,color565(R,G,B))
+    elif screenMode==2 or screenMode==3:
+        R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
+        dsp.fill_hrect(0,150,120,100,color565(R,G,B))
+        dsp.draw_text8x8(29,196,'COLOR 1',0,color565(R,G,B))
+        R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
+        dsp.fill_hrect(120,150,120,100,color565(R,G,B))
+        dsp.draw_text8x8(150,196,'COLOR 2',0,color565(R,G,B))
+        dsp.draw_vline(119,150,100,0)
+    
     if screenMode<=11:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -899,6 +934,8 @@ def settings_touch(x,y):
         screenModePickerActive=True
 display_settings()
 lm=rtc.datetime()[5]
+runAnimation=True
+stars(100,4)
 while True:
     dtm=rtc.datetime()
     if lm!=dtm[5]:
