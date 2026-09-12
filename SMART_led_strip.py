@@ -140,7 +140,7 @@ wifiBrightnessVal=0
 def getBrightness(rng):
     global wifiBrightness,lastNonWiFipotVal,wifiBrightnessVal
     potVal=BrightPot.read_u16()
-    print(potVal)
+    #print(potVal)
     if not wifiBrightness:
         lastNonWiFipotVal=potVal
         return round((potVal/65535)*rng,2)
@@ -728,10 +728,10 @@ def color_picker_UI():
     r=100
     X=120
     Y=160
-    cw=bytearray((2*r+1)*(r+1)*2)
-    fb=framebuf.FrameBuffer(cw,101,201,framebuf.RGB565)
+    cw=bytearray((r+1)*(r+1)*2)
+    fb=framebuf.FrameBuffer(cw,101,101,framebuf.RGB565)
     for x in range(0,r+1):
-        for y in range(0,2*r+1):
+        for y in range(0,r+1):
             dy=r-y
             dx=x
             dst=(dx**2+dy**2)**0.5
@@ -743,13 +743,45 @@ def color_picker_UI():
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(dx,r-dy ,c)
-    dsp.block(X,Y-r,X+r,Y+r,cw)
+                fb.pixel(x,y ,c)
+    dsp.block(X,Y-r,X+r,Y,cw)
     fb.fill(0)
     for x in range(0,r+1):
-        for y in range(0,2*r+1):
+        for y in range(0,r+1):
+            dy=-y
+            dx=x
+            dst=(dx**2+dy**2)**0.5
+            if dst<=r:
+                deg=math.atan2(dy,dx)*(180/math.pi)
+                deg=360-deg#changing direction
+                deg+=90#rotating color wheel
+                R,G,B=getRGB(deg,dst,1)
+                    #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
+                c=color565(R,G,B)
+                c = ((c & 0xFF) << 8) | (c >> 8)
+                fb.pixel(x,y ,c)
+    dsp.block(X,Y,X+r,Y+r,cw)
+    fb.fill(0)
+    for x in range(0,r+1):
+        for y in range(0,r+1):
+            dy=-y
+            dx=-r+x
+            dst=(dx**2+dy**2)**0.5
+            if dst<=r:
+                deg=math.atan2(dy,dx)*(180/math.pi)
+                deg=360-deg#changing direction
+                deg+=90#rotating color wheel
+                R,G,B=getRGB(deg,dst,1)
+                    #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
+                c=color565(R,G,B)
+                c = ((c & 0xFF) << 8) | (c >> 8)
+                fb.pixel(x,y ,c)
+    dsp.block(X-r,Y,X,Y+r,cw)
+    fb.fill(0)
+    for x in range(0,r+1):
+        for y in range(0,r+1):
             dy=r-y
-            dx=x-r
+            dx=-r+x
             dst=(dx**2+dy**2)**0.5
             if dst<=r:
                 deg=math.atan2(dy,dx)*(180/math.pi)
@@ -758,8 +790,8 @@ def color_picker_UI():
                 R,G,B=getRGB(deg,dst,1)
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(x,r-dy ,c)
-    dsp.block(X-r,Y-r,X,Y+r,cw)
+                fb.pixel(x,y ,c)
+    dsp.block(X-r,Y-r,X,Y,cw)
     dspLED.on()
     dsp.draw_rectangle(150,270,90,50,color565(255,255,255))
     dsp.draw_text8x8(164,291, 'Confirm', color565(255,255,255))
@@ -977,16 +1009,13 @@ def settings_touch(x,y):
         elif screenMode==1 and y>132.5 and y<157.5:
             numKeyData=[True,4]
             numKey_UI()
-
-        
-
 display_settings()
 lm=rtc.datetime()[5]
 #runAnimation=True
 #stars(100,4)
 while True:
     dtm=rtc.datetime()
-    if lm!=dtm[5]:
+    if lm!=dtm[5] and not(screenModePickerActive or numKeyData[0] or colorPickerData[0]):
         lm=dtm[5]
         weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
         dsp.fill_hrect(0,0,240,8,0)
