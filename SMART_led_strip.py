@@ -790,10 +790,11 @@ def color_picker_touch(x,y):
         colorPickerData[0]=False
         pixColors[colorPickerData[1]]=selected_color
         dsp.clear()
+        display_settings()
 #numeric keyboard
 selected_num=''
 numKeyData=[False,0]#active flag, pixData list index
-pixParams=[0,0,0,0,0,0,0,0,0,0,0]
+pixParams=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 numKeyLayout=[['1','2','3'],['4','5','6'],['7','8','9'],['C','0','OK']]
 def numKey_UI():
     global numKeyLayout
@@ -834,6 +835,7 @@ def numKey_touch(x,y):
                 numKeyData[0]=False
                 pixParams[numKeyData[1]]=int(selected_num)
                 dsp.clear()
+                display_settings()
         else:
             selected_num=selected_num+key
             dsp.fill_hrect(2,2,236,41,0)
@@ -875,6 +877,7 @@ def screenMode_picker_touch(x,y):
     print(i)
     screenMode=i
     screenModePickerActive=False
+    display_settings()
 #settings displaying function
 def display_param_line(x0,y0,paramName,paramValue):
     whitec=color565(255,255,255)
@@ -893,13 +896,14 @@ def display_settings():
     dsp.draw_rectangle(0,10,240,12,whitec)
     a=screenModeNames[screenMode]
     dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),12,a,whitec)
+    #modes 1-4
+    boolnames={'0':'OFF','1':'ON'}
     if screenMode<5:
         fading_on=str(pixParams[0])
-        fminBrightness=str(round(pixParams[1],2)*100)
+        fminBrightness=str(pixParams[1])
         fadetypes={'0':'linear','1':'exp.'}
-        boolnames={'0':'OFF','1':'ON'}
-        fadetype=str(pixParams[2])
-        fspeed=str(pixParams[5])
+        fadetype=str(pixParams[3])
+        fspeed=str(pixParams[2])
         
         dsp.draw_text8x8(0,25,'Fading settings:',whitec)
 
@@ -909,20 +913,26 @@ def display_settings():
         display_param_line(5,110,'Fading speed:',fspeed)
 
     if screenMode==0:
-        display_param_line(0,135,'Temperature',str(pixParams[3]))
-    elif screenMode==1:
+        display_param_line(0,135,'Temperature:',str(pixParams[4]))
+    if screenMode==1:
         R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
-        dsp.fill_hrect(0,150,240,100,color565(R,G,B))
+        dsp.fill_hrect(0,180,240,100,color565(R,G,B))
         dsp.draw_text8x8(98,196,'COLOR',0,color565(R,G,B))
-    elif screenMode==2 or screenMode==3:
+    if screenMode==2 or screenMode==3:
         R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
-        dsp.fill_hrect(0,150,120,100,color565(R,G,B))
+        dsp.fill_hrect(0,180,120,100,color565(R,G,B))
         dsp.draw_text8x8(29,196,'COLOR 1',0,color565(R,G,B))
         R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
-        dsp.fill_hrect(120,150,120,100,color565(R,G,B))
+        dsp.fill_hrect(120,180,120,100,color565(R,G,B))
         dsp.draw_text8x8(150,196,'COLOR 2',0,color565(R,G,B))
         dsp.draw_vline(119,150,100,0)
-    
+    if screenMode==3 or screenMode==4:
+        display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
+    if screenMode==4:
+        display_param_line(0,160,'Saturation:',str(pixParams[5]))
+    #mode 5
+    if screenMode==5:
+        display_param_line(0,30,'Speed:',str(pixParams[2]))
     if screenMode<=11:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -932,10 +942,48 @@ def settings_touch(x,y):
     if y>=10 and y<=22:
         screenMode_picker_UI()
         screenModePickerActive=True
+    #modes 1-4
+    if screenMode<5:
+        if y>=35 and y<=130:
+            ia=0
+            for i in range(1,5):
+                if y<i*25+32.5:
+                    ia=i
+                    break
+            if ia==1:
+                pixParams[0]=int(not bool(pixParams[0]))
+            if ia==2:
+                pixParams[2]=int(not bool(pixParams[3]))
+            if ia==3:
+                numKeyData=[True,1]
+                numKey_UI()
+            if ia==4:
+                numKeyData=[True,2]
+                numKey_UI()
+        elif screenMode==1 or screenMode==2 or screenMode==3 and (y>=180 and y<=280):
+            if screenMode==1:
+                colorPickerData=[True,0]
+            else:
+                if x<=120:
+                    colorPickerData=[True,0]
+                else:
+                    colorPickerData=[True,1]
+            color_picker_UI()
+        elif screenMode==3 or screenMode==4 and (y>132.5 and y<157.5):
+            pixParams[13]=int(not bool(pixParams[13]))
+        elif screenMode==4 and y>157.5 and y<182.5:
+            numKeyData=[True,5]
+            numKey_UI()
+        elif screenMode==1 and y>132.5 and y<157.5:
+            numKeyData=[True,4]
+            numKey_UI()
+
+        
+
 display_settings()
 lm=rtc.datetime()[5]
-runAnimation=True
-stars(100,4)
+#runAnimation=True
+#stars(100,4)
 while True:
     dtm=rtc.datetime()
     if lm!=dtm[5]:
