@@ -826,7 +826,7 @@ def color_picker_touch(x,y):
 #numeric keyboard
 selected_num=''
 numKeyData=[False,0]#active flag, pixData list index
-pixParams=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+pixParams=[0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 numKeyLayout=[['1','2','3'],['4','5','6'],['7','8','9'],['C','0','OK']]
 def numKey_UI():
     global numKeyLayout
@@ -867,6 +867,7 @@ def numKey_touch(x,y):
                 numKeyData[0]=False
                 pixParams[numKeyData[1]]=int(selected_num)
                 dsp.clear()
+                selected_num=''
                 display_settings()
         else:
             selected_num=selected_num+key
@@ -957,7 +958,7 @@ def display_settings():
         R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
         dsp.fill_hrect(120,180,120,100,color565(R,G,B))
         dsp.draw_text8x8(150,196,'COLOR 2',0,color565(R,G,B))
-        dsp.draw_vline(119,150,100,0)
+        dsp.draw_vline(119,180,100,0)
     if screenMode==3 or screenMode==4:
         display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
     if screenMode==4:
@@ -971,7 +972,7 @@ def display_settings():
 #settings touch processing
 def settings_touch(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive
-    if y>=10 and y<=22:
+    if y<=22:
         screenMode_picker_UI()
         screenModePickerActive=True
     #modes 1-4
@@ -984,15 +985,17 @@ def settings_touch(x,y):
                     break
             if ia==1:
                 pixParams[0]=int(not bool(pixParams[0]))
+                display_settings()
             if ia==2:
                 pixParams[2]=int(not bool(pixParams[3]))
+                display_settings()
             if ia==3:
                 numKeyData=[True,1]
                 numKey_UI()
             if ia==4:
                 numKeyData=[True,2]
                 numKey_UI()
-        elif screenMode==1 or screenMode==2 or screenMode==3 and (y>=180 and y<=280):
+        elif (screenMode==1 or screenMode==2 or screenMode==3) and (y>=180 and y<=280):
             if screenMode==1:
                 colorPickerData=[True,0]
             else:
@@ -1001,8 +1004,9 @@ def settings_touch(x,y):
                 else:
                     colorPickerData=[True,1]
             color_picker_UI()
-        elif screenMode==3 or screenMode==4 and (y>132.5 and y<157.5):
+        elif (screenMode==3 or screenMode==4) and (y>132.5 and y<157.5):
             pixParams[13]=int(not bool(pixParams[13]))
+            display_settings()
         elif screenMode==4 and y>157.5 and y<182.5:
             numKeyData=[True,5]
             numKey_UI()
@@ -1013,7 +1017,7 @@ display_settings()
 lm=rtc.datetime()[5]
 #runAnimation=True
 #stars(100,4)
-while True:
+while True: 
     dtm=rtc.datetime()
     if lm!=dtm[5] and not(screenModePickerActive or numKeyData[0] or colorPickerData[0]):
         lm=dtm[5]
