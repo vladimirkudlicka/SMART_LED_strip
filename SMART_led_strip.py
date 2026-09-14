@@ -824,12 +824,55 @@ def color_picker_touch(x,y):
         dsp.clear()
         display_settings()
 #numeric keyboard
+def validate_num(pixParamIndex,value):
+    global pixLength
+    OK=False
+    EMSG=''
+    match pixParamIndex:
+        case 1:
+            if 0<=value<=100:
+                OK= True
+            else:
+                EMSG='0-100'
+        case 2:
+            if 0<value<=500:
+                OK=True
+            else:
+                EMSG='1-500'
+        case 4:
+            if  0<=value<=255:
+                OK=True
+            else:
+                EMSG='0-255'
+        case 5:
+            if 0<=value<=100:
+                OK=True
+            else:
+                EMSG='0-100'
+        case 7:
+            if 0<=value<=(pixLength//4):
+                OK=True
+            else:
+                EMSG='0-'+str(pixLength//4)
+        case 9:
+            if 0<value<=pixLength:
+                OK=True
+            else:
+                EMSG='1-'+str(pixLength)
+        case 10:
+            if 10<=value<=65535:
+                OK=True
+            else:
+                EMSG='10-65535'
+    EMSG='must be in range ' + EMSG
+    return OK,EMSG   
 selected_num=''
 numKeyData=[False,0]#active flag, pixData list index
-pixParams=[0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+pixParams=[0,0,1,0,0,0,0,0,0,0,0,0,0,0]
 numKeyLayout=[['1','2','3'],['4','5','6'],['7','8','9'],['C','0','OK']]
 def numKey_UI():
-    global numKeyLayout
+    global numKeyLayout,numkey_emsg
+    numKey_emsg=False
     dsp.clear()
     dsp.draw_rectangle(0,0,240,45,color565(255,255,255))
     for c in range(0,3):
@@ -840,7 +883,7 @@ def numKey_UI():
             else:
                 dsp.draw_text8x8(int(c*83.333)+32,50+r*70+26,numKeyLayout[r][c],color565(255,255,255))
 def numKey_touch(x,y):
-    global selected_num, numKeyData,pixParams,numKeyLayout
+    global selected_num, numKeyData,pixParams,numKeyLayout,numkey_emsg
     if y>45:
         for r in range(3,-1,-1):
            if y>50+r*70:
@@ -862,13 +905,24 @@ def numKey_touch(x,y):
                 else:
                     selected_num=''
                     dsp.fill_hrect(2,2,236,41,0)
+            elif numkey_emsg:
+                numkey_emsg=False
+                dsp.fill_hrect(2,2,236,41,0)
         elif key=='OK':
             if len(selected_num)>0:
-                numKeyData[0]=False
-                pixParams[numKeyData[1]]=int(selected_num)
-                dsp.clear()
-                selected_num=''
-                display_settings()
+                OK,emsg=validate_num(numKeyData[1],int(selected_num))
+                if OK:
+                    numKeyData[0]=False
+                    pixParams[numKeyData[1]]=int(selected_num)
+                    dsp.clear()
+                    selected_num=''
+                    display_settings()
+                else:
+                    numkey_emsg=True
+                    selected_num=''
+                    dsp.fill_hrect(2,2,236,41,0)
+                    l=len(emsg)
+                    dsp.draw_text8x8(int((240-l*8-l+1)/2),18,emsg,color565(255,255,255))
         else:
             selected_num=selected_num+key
             dsp.fill_hrect(2,2,236,41,0)
