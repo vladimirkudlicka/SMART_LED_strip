@@ -1,22 +1,33 @@
+#imports
 #general
 from machine import SPI,SoftSPI, Pin, ADC,RTC,reset
 from time import sleep,sleep_ms,time,localtime
-#dislay
-from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
-from xtp2046 import Touch
-import framebuf
-import math
 #WiFi and internet
 import SECRETS
 import network
 import socket
 import ntptime
+
+#wifi init
+wifi=network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect(SECRETS.SSID,SECRETS.PWD)
+n=0
+while not wifi.isconnected() and n<20:
+    sleep(1)
+    n+=1
+#display init
+    
+#dislay
+from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
+from xtp2046 import Touch
+import framebuf
+import math
 #neopixel
 import neopixel
 import random
 import _thread
 
-#display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
 dsp=Display(dspSPI,cs=Pin(5),rst=Pin(22),dc=Pin(17),rotation=270)
 dspLED=Pin(16,Pin.OUT)
@@ -47,19 +58,9 @@ pix.fill((0,0,0))
 pix.write()
 sleep(2)
 #connecting to WiFi
-dsp.fill_hrect(19,151,220,20,0)
-dsp.draw_text8x8(39,156,'Connecting to WiFi',color565(255,255,255))
-wifi=network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect(SECRETS.SSID,SECRETS.PWD)
-n=0
-while not wifi.isconnected() and n<20:
-    sleep(1)
-    n+=1
-dsp.fill_hrect(19,151,220,20,0)
-dsp.fill_hrect(74,299,165,10,0)
+dsp.clear()
 if wifi.isconnected():
-    dsp.draw_text8x8(21,143,'Connected succesfully!',color565(255,255,255))
+    dsp.draw_text8x8(10,143,'WiFi connection succesful!',color565(255,255,255))
     IP=wifi.ifconfig()[0] 
     dsp.draw_text8x8(20,161,'IP: '+IP,color565(255,255,255))
     print(IP)
@@ -68,6 +69,7 @@ else:
     dsp.draw_text8x8(71,161,'Reseting...',color565(255,255,255))
     sleep(5)
     reset()
+sleep(5)
 #time setup
 import urequests
 response=urequests.get('http://ip-api.com/json/?fields=timezone,offset')
@@ -970,6 +972,15 @@ def display_param_line(x0,y0,paramName,paramValue):
     dsp.draw_text8x8(x0,y0+6,paramName,whitec)
     dsp.draw_rectangle(180,y0,55,20,whitec)  
     dsp.draw_text8x8(int(180+((60-len(paramValue)*9)/2)-1),y0+6,paramValue,whitec)
+def setting_color_squares(y):
+    global pixColors
+    R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
+    dsp.fill_hrect(0,y,120,100,color565(R,G,B))
+    dsp.draw_text8x8(29,y+46,'COLOR 1',0,color565(R,G,B))
+    R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
+    dsp.fill_hrect(120,y,120,100,color565(R,G,B))
+    dsp.draw_text8x8(150,y+46,'COLOR 2',0,color565(R,G,B))
+    dsp.draw_vline(119,y,100,0)
 def display_settings():
     global screenMode,screenModeNames,pixParams
     whitec=color565(255,255,255)
@@ -1005,13 +1016,7 @@ def display_settings():
         dsp.fill_hrect(0,180,240,100,color565(R,G,B))
         dsp.draw_text8x8(98,226,'COLOR',0,color565(R,G,B))
     if screenMode==2 or screenMode==3:
-        R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
-        dsp.fill_hrect(0,180,120,100,color565(R,G,B))
-        dsp.draw_text8x8(29,226,'COLOR 1',0,color565(R,G,B))
-        R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
-        dsp.fill_hrect(120,180,120,100,color565(R,G,B))
-        dsp.draw_text8x8(150,226,'COLOR 2',0,color565(R,G,B))
-        dsp.draw_vline(119,180,100,0)
+        setting_color_squares(180)
     if screenMode==3 or screenMode==4:
         display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
     if screenMode==4:
@@ -1021,6 +1026,15 @@ def display_settings():
         display_param_line(0,30,'Speed:',str(pixParams[2]))
         display_param_line(0,65,'Saturation:',str(pixParams[5]))
         display_param_line(0,100,'Reverse:',str(bool(pixParams[13])))
+    if screenMode==6 or screenMode==7:
+        direction_names={0:'FD',1:'BG'}
+        display_param_line(0,30,'Speed:',str(pixParams[2]))
+        display_param_line(0,55,'Direction',direction_names[pixParams[6]])
+        display_param_line(0,80,'Reverse:',str(bool(pixParams[13])))
+    if screenMode==6:
+        display_param_line(0,105,'Saturation',str(pixParams[5]))
+    if screenMode==7:
+        setting_color_squares()
     if screenMode<=11:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -1073,10 +1087,22 @@ def settings_touch(x,y):
         elif screenMode==0 and y>132.5 and y<157.5:
             numKeyData=[True,4]
             numKey_UI()
+    elif screenMode==5:
+        if 25<=y<=57.5:
+            numKeyData=[True,2]
+            numKey_UI()
+        elif 57.5<y<=92.5:
+            numKeyData=[True,5]
+            numKey_UI()
+        elif 92.5<y<=127.5:
+           pixParams[13]=int(not bool(pixParams[13]))
+           dsp.fill_hrect(0,100,240,20,0)
+           display_param_line(0,100,'Reverse:',str(bool(pixParams[13]))) 
+
 display_settings()
 lm=rtc.datetime()[5]
-#runAnimation=True
-#stars(100,4)
+runAnimation=True
+_thread.start_new_thread(stars,(100,4))
 while True: 
     dtm=rtc.datetime()
     if lm!=dtm[5] and not(screenModePickerActive or numKeyData[0] or colorPickerData[0]):
