@@ -2,7 +2,7 @@ import math
 import random
 from machine import Pin,ADC
 from time import sleep_ms
-#initiation
+# variable initiation
 runAnimation=False
 
 pix=None
@@ -12,10 +12,10 @@ random_seed_src=None
 wifiBrightness=False
 lastNonWiFipotVal=0
 wifiBrightnessVal=0.5
-#initiation
+#initiation function
 def init_pixAnimations(NeoPixel_strip,PixLength,Brightness_pot_pin,random_seed_src_pin,sound_sens_pin):
     global pix, BrightPot, pixLength,random_seed_src,sound
-    pixLenght=PixLength
+    pixLength=PixLength
     pix=NeoPixel_strip
     sound=ADC(Pin(sound_sens_pin))
     random_seed_src=ADC(Pin(random_seed_src_pin))
@@ -36,6 +36,7 @@ def sound_lvl():
     raw=sound.read_u16()
     processed=abs(raw-quiet_sound_lvl)
     return processed
+
 #Color generator
 #soure:https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (it was modified by my to contain brightnes, saturation and I flipped the color wheel)
 def getRGB(deg,sat,brightness):#sat=saturation(0-100)
@@ -72,6 +73,7 @@ def getRGB(deg,sat,brightness):#sat=saturation(0-100)
         B=0
     myColor=(math.ceil(((R*sat*255)+(255*(1-sat)))*brightness),math.ceil(((G*sat*255)+(255*(1-sat)))*brightness),math.ceil(((B*sat*255)+(255*(1-sat)))*brightness))
     return myColor    
+
 #NeoPixel modes support functions
 def getBrightness(rng):
     global wifiBrightness,lastNonWiFipotVal,wifiBrightnessVal
@@ -100,6 +102,7 @@ def fading(lvl,up,minBright,maxBright,fadetype):
     elif fadetype==0:
         bright=minBright+((maxBright-minBright)*lvl)
     return bright,lvl,up
+
 #NeoPixel modes
 def white(temperature,fadingActive,fminBrightness,fspeed,fadetype):
     global runAnimation

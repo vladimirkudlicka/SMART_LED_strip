@@ -37,10 +37,11 @@ dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 sound_sens_pin=34
 BrightPot_pin=35
 random_seed_src_pin=36#leave this pin unconnected
+
 #NeoPixel config
 import pixAnimations
 pixLength=8
-pix=neopixel.NeoPixel(Pin(21,pixLength))
+pix=neopixel.NeoPixel(Pin(21),pixLength)
 pixAnimations.init_pixAnimations(pix,pixLength,BrightPot_pin,random_seed_src_pin,sound_sens_pin)
 sleep(2)
 #connecting to WiFi
@@ -79,7 +80,6 @@ tm=time()+rData['offset']
 dtmt=localtime(tm)
 rtc.datetime((dtmt[0],dtmt[1],dtmt[2],dtmt[7],dtmt[3],dtmt[4],dtmt[5],0))
 dsp.clear()
-#pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars,soundbar_monocolor,soundbar_color_range]      
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -92,12 +92,14 @@ def color_picker_UI():
     r=100
     X=120
     Y=160
+    nr=10
     cw=bytearray((r+1)*(r+1)*2)
     fb=framebuf.FrameBuffer(cw,101,101,framebuf.RGB565)
-    for x in range(0,r+1):
-        for y in range(0,r+1):
-            dy=r-y
-            dx=x
+    for y in range(0,2*r):
+        for x in range(0,2*r):
+            dy=-r+y
+            dx=-r+x
+            
             dst=(dx**2+dy**2)**0.5
             if dst<=r:
                 deg=math.atan2(dy,dx)*(180/math.pi)
@@ -110,52 +112,6 @@ def color_picker_UI():
                 fb.pixel(x,y ,c)
     dsp.block(X,Y-r,X+r,Y,cw)
     fb.fill(0)
-    for x in range(0,r+1):
-        for y in range(0,r+1):
-            dy=-y
-            dx=x
-            dst=(dx**2+dy**2)**0.5
-            if dst<=r:
-                deg=math.atan2(dy,dx)*(180/math.pi)
-                deg=360-deg#changing direction
-                deg+=90#rotating color wheel
-                R,G,B=pixAnimations.getRGB(deg,dst,1)
-                    #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
-                c=color565(R,G,B)
-                c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(x,y ,c)
-    dsp.block(X,Y,X+r,Y+r,cw)
-    fb.fill(0)
-    for x in range(0,r+1):
-        for y in range(0,r+1):
-            dy=-y
-            dx=-r+x
-            dst=(dx**2+dy**2)**0.5
-            if dst<=r:
-                deg=math.atan2(dy,dx)*(180/math.pi)
-                deg=360-deg#changing direction
-                deg+=90#rotating color wheel
-                R,G,B=pixAnimations.getRGB(deg,dst,1)
-                    #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
-                c=color565(R,G,B)
-                c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(x,y ,c)
-    dsp.block(X-r,Y,X,Y+r,cw)
-    fb.fill(0)
-    for x in range(0,r+1):
-        for y in range(0,r+1):
-            dy=r-y
-            dx=-r+x
-            dst=(dx**2+dy**2)**0.5
-            if dst<=r:
-                deg=math.atan2(dy,dx)*(180/math.pi)
-                deg=360-deg#changing direction
-                deg+=90#rotating color wheel
-                R,G,B=pixAnimations.getRGB(deg,dst,1)
-                c=color565(R,G,B)
-                c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(x,y ,c)
-    dsp.block(X-r,Y-r,X,Y,cw)
     dspLED.on()
     dsp.draw_rectangle(150,270,90,50,color565(255,255,255))
     dsp.draw_text8x8(164,291, 'Confirm', color565(255,255,255))
@@ -458,7 +414,7 @@ def settings_touch_5_7(x,y):
             dsp.fill_hrect(0,100,240,20,0)
             display_param_line(0,100,'Reverse:',str(bool(pixParams[13])))
 def settings_touch(x,y):
-    global screenMode
+    global screenMode,screenModePickerActive
     if y<=22:
         screenMode_picker_UI()
         screenModePickerActive=True
@@ -467,9 +423,9 @@ def settings_touch(x,y):
             settings_touch_0_4(x,y)
         elif screenMode<=7:
             settings_touch_5_7(x,y)
-
-
-
+pixAnimations.runAnimation=True
+import _thread
+_thread.start_new_thread(pixAnimations.stars,(100,4))
 display_settings()
 lm=rtc.datetime()[5]
 while True: 
