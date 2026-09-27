@@ -1,33 +1,20 @@
-#imports
 #general
 from machine import SPI,SoftSPI, Pin, ADC,RTC,reset
 from time import sleep,sleep_ms,time,localtime
-#WiFi and internet
-import SECRETS
-import network
-import socket
-import ntptime
-
-#wifi init
-wifi=network.WLAN(network.STA_IF)
-wifi.active(True)
-wifi.connect(SECRETS.SSID,SECRETS.PWD)
-n=0
-while not wifi.isconnected() and n<20:
-    sleep(1)
-    n+=1
-#display init
-    
 #dislay
 from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
 from xtp2046 import Touch
 import framebuf
 import math
+#WiFi and internet
+import SECRETS
+import network
+import socket
+import ntptime
 #neopixel
 import neopixel
 import random
-import _thread
-
+#display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
 dsp=Display(dspSPI,cs=Pin(5),rst=Pin(22),dc=Pin(17),rotation=270)
 dspLED=Pin(16,Pin.OUT)
@@ -58,9 +45,19 @@ pix.fill((0,0,0))
 pix.write()
 sleep(2)
 #connecting to WiFi
-dsp.clear()
+dsp.fill_hrect(19,151,220,20,0)
+dsp.draw_text8x8(39,156,'Connecting to WiFi',color565(255,255,255))
+wifi=network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect(SECRETS.SSID,SECRETS.PWD)
+n=0
+while not wifi.isconnected() and n<20:
+    sleep(1)
+    n+=1
+dsp.fill_hrect(19,151,220,20,0)
+dsp.fill_hrect(74,299,165,10,0)
 if wifi.isconnected():
-    dsp.draw_text8x8(10,143,'WiFi connection succesful!',color565(255,255,255))
+    dsp.draw_text8x8(21,143,'Connected succesfully!',color565(255,255,255))
     IP=wifi.ifconfig()[0] 
     dsp.draw_text8x8(20,161,'IP: '+IP,color565(255,255,255))
     print(IP)
@@ -69,14 +66,15 @@ else:
     dsp.draw_text8x8(71,161,'Reseting...',color565(255,255,255))
     sleep(5)
     reset()
-sleep(5)
 #time setup
 import urequests
 response=urequests.get('http://ip-api.com/json/?fields=timezone,offset')
 rData=response.json()
 response.close()
 del urequests
+import ntptime
 ntptime.settime()
+del ntptime
 rtc=RTC()
 tm=time()+rData['offset']
 dtmt=localtime(tm)
@@ -840,7 +838,7 @@ def validate_num(pixParamIndex,value):
             OK=True
         else:
             EMSG='1-500'
-    elif pixParamIndex== 2:
+    elif pixParamIndex== 3:
         if  0<=value<=255:
             OK=True
         else:
@@ -1039,70 +1037,77 @@ def display_settings():
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
 #settings touch processing
-def settings_touch(x,y):
+def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
+    boolnames={'0':'OFF','1':'ON'}   
+    if y>=35 and y<=130:
+        ia=0
+        fadetypes={'0':'linear','1':'exp.'}
+        for i in range(1,5):
+            if y<i*25+32.5:
+                ia=i
+                break
+        if ia==1:
+            pixParams[0]=int(not bool(pixParams[0]))
+            dsp.fill_hrect(0,35,240,20,0)
+            display_param_line(5,35,'Fading active:',boolnames[str(pixParams[0])])
+        if ia==2:
+            pixParams[3]=int(not bool(pixParams[3]))
+            dsp.fill_hrect(0,60,240,20,0)
+            display_param_line(5,60,'Fade type:',fadetypes[str(pixParams[3])])
+        if ia==3:
+            numKeyData=[True,1]
+            numKey_UI()
+        if ia==4:
+            numKeyData=[True,2]
+            numKey_UI()
+    elif (screenMode==1 or screenMode==2 or screenMode==3) and (y>=180 and y<=280):
+        if screenMode==1:
+            colorPickerData=[True,0]
+        else:
+            if x<=120:
+                colorPickerData=[True,0]
+            else:
+                colorPickerData=[True,1]
+        color_picker_UI()
+    elif (screenMode==3 or screenMode==4) and (y>132.5 and y<157.5):
+        pixParams[13]=int(not bool(pixParams[13]))
+        dsp.fill_hrect(0,135,240,20,0)
+        display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
+    elif screenMode==4 and y>157.5 and y<182.5:
+        numKeyData=[True,5]
+        numKey_UI()
+    elif screenMode==0 and y>132.5 and y<157.5:
+        numKeyData=[True,4]
+        numKey_UI()
+def settings_touch_5_7(x,y):
+    global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
+    if screenMode==5:
+        if 25<=y and y<=57.5:
+            numKeyData=[True,2]
+            numKey_UI()
+        elif 57.5<y and y<=92.5:
+            numKeyData=[True,5]
+            numKey_UI()
+        elif 92.5<=y and y<=127.5:
+            pixParams[13]=int(not bool(pixParams[13]))
+            dsp.fill_hrect(0,100,240,20,0)
+            display_param_line(0,100,'Reverse:',str(bool(pixParams[13])))
+def settings_touch(x,y):
+    global screenMode
     if y<=22:
         screenMode_picker_UI()
         screenModePickerActive=True
-    #modes 1-4
-    boolnames={'0':'OFF','1':'ON'}
-    if screenMode<5:   
-        if y>=35 and y<=130:
-            ia=0
-            fadetypes={'0':'linear','1':'exp.'}
-            for i in range(1,5):
-                if y<i*25+32.5:
-                    ia=i
-                    break
-            if ia==1:
-                pixParams[0]=int(not bool(pixParams[0]))
-                dsp.fill_hrect(0,35,240,20,0)
-                display_param_line(5,35,'Fading active:',boolnames[str(pixParams[0])])
-            if ia==2:
-                pixParams[3]=int(not bool(pixParams[3]))
-                dsp.fill_hrect(0,60,240,20,0)
-                display_param_line(5,60,'Fade type:',fadetypes[str(pixParams[3])])
-            if ia==3:
-                numKeyData=[True,1]
-                numKey_UI()
-            if ia==4:
-                numKeyData=[True,2]
-                numKey_UI()
-        elif (screenMode==1 or screenMode==2 or screenMode==3) and (y>=180 and y<=280):
-            if screenMode==1:
-                colorPickerData=[True,0]
-            else:
-                if x<=120:
-                    colorPickerData=[True,0]
-                else:
-                    colorPickerData=[True,1]
-            color_picker_UI()
-        elif (screenMode==3 or screenMode==4) and (y>132.5 and y<157.5):
-            pixParams[13]=int(not bool(pixParams[13]))
-            dsp.fill_hrect(0,135,240,20,0)
-            display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
-        elif screenMode==4 and y>157.5 and y<182.5:
-            numKeyData=[True,5]
-            numKey_UI()
-        elif screenMode==0 and y>132.5 and y<157.5:
-            numKeyData=[True,4]
-            numKey_UI()
-    elif screenMode==5:
-        if 25<=y<=57.5:
-            numKeyData=[True,2]
-            numKey_UI()
-        elif 57.5<y<=92.5:
-            numKeyData=[True,5]
-            numKey_UI()
-        elif 92.5<y<=127.5:
-           pixParams[13]=int(not bool(pixParams[13]))
-           dsp.fill_hrect(0,100,240,20,0)
-           display_param_line(0,100,'Reverse:',str(bool(pixParams[13]))) 
+    else:
+        if screenMode<=4:
+            settings_touch_0_4(x,y)
+        elif screenMode<=7:
+            settings_touch_5_7(x,y)
+
+
 
 display_settings()
 lm=rtc.datetime()[5]
-runAnimation=True
-_thread.start_new_thread(stars,(100,4))
 while True: 
     dtm=rtc.datetime()
     if lm!=dtm[5] and not(screenModePickerActive or numKeyData[0] or colorPickerData[0]):
@@ -1112,10 +1117,8 @@ while True:
         dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',color565(255,255,255))
     if touch[0]:
         touch[0]=False
-        #print(touch[1],touch[2],'Sound lvl:',sound.read_u16() )
         if colorPickerData[0]:
             color_picker_touch(touch[1],touch[2])
-            #print(pixColors)
         elif numKeyData[0]:
             numKey_touch(touch[1],touch[2])
         elif screenModePickerActive:
