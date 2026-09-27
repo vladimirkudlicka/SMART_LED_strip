@@ -13,7 +13,6 @@ import socket
 import ntptime
 #neopixel
 import neopixel
-import random
 #display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
 dsp=Display(dspSPI,cs=Pin(5),rst=Pin(22),dc=Pin(17),rotation=270)
@@ -35,14 +34,14 @@ touch=[False,0,0]
 dsp.draw_text8x8(20,156, 'starting SMART LED system', color565(255,255,255))
 dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 #sensors config
-sound=ADC(Pin(34))
-BrightPot=ADC(Pin(35))
-random_seed_src=ADC(Pin(36))#leave this pin unconnected
+sound_sens_pin=34
+BrightPot_pin=35
+random_seed_src_pin=36#leave this pin unconnected
 #NeoPixel config
+import pixAnimations
 pixLength=8
-pix=neopixel.NeoPixel(Pin(21),pixLength)
-pix.fill((0,0,0))
-pix.write()
+pix=neopixel.NeoPixel(Pin(21,pixLength))
+pixAnimations.init_pixAnimations(pix,pixLength,BrightPot_pin,random_seed_src_pin,sound_sens_pin)
 sleep(2)
 #connecting to WiFi
 dsp.fill_hrect(19,151,220,20,0)
@@ -80,64 +79,7 @@ tm=time()+rData['offset']
 dtmt=localtime(tm)
 rtc.datetime((dtmt[0],dtmt[1],dtmt[2],dtmt[7],dtmt[3],dtmt[4],dtmt[5],0))
 dsp.clear()
-#noise sensor function
-quiet_sound_lvl=1127.6624
-def callibrate_sound_sensor():
-    global quiet_sound_lvl
-    data=list()
-    for i in range(1000):
-        data.append(sound.read_u16())
-        sleep_ms(1)
-    quiet_sound_lvl=sum(data)/len(data)
-def sound_lvl():
-    global quiet_sound_lvl
-    raw=sound.read_u16()
-    processed=abs(raw-quiet_sound_lvl)
-    return processed
-#Color generator
-#soure:https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (it was modified by my to contain brightnes, saturation and I flipped the color wheel)
-def getRGB(deg,sat,brightness):#sat=saturation(0-100)
-    deg=360-deg
-    if deg>360:
-        deg-=360
-    elif deg<0:
-        deg+=360
-    sat=sat/100
-    m=1/60
-    if deg>=0 and deg<60:
-        R=1
-        G=0
-        B=m*deg
-    if deg>=60 and deg<120:
-        R=1-m*(deg-60)
-        G=0
-        B=1
-    if deg>=120 and deg<180:
-        R=0
-        G=m*(deg-120)
-        B=1
-    if deg>=180 and deg<240:
-        R=0
-        G=1
-        B=1-m*(deg-180)
-    if deg>=240 and deg<300:
-        R=m*(deg-240)
-        G=1
-        B=0
-    if deg>=300 and deg<=360:
-        R=1
-        G=1-m*(deg-300)
-        B=0
-    myColor=(math.ceil(((R*sat*255)+(255*(1-sat)))*brightness),math.ceil(((G*sat*255)+(255*(1-sat)))*brightness),math.ceil(((B*sat*255)+(255*(1-sat)))*brightness))
-    return myColor
-#neopixel modes functions and support functions
-runAnimation=False
-pixmode=0
-#fullpix category functions
-wifiBrightness=False
-lastNonWiFipotVal=0
-wifiBrightnessVal=0
-pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars,soundbar_monocolor,soundbar_color_range]      
+#pixModesFunctions=[white,monocolor,bicolor,color_range,static_rainbow,rainbow_scrolling,dynamic_color_range,dynamic_rainbow,running_light_full,running_light_center,stars,soundbar_monocolor,soundbar_color_range]      
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -161,7 +103,7 @@ def color_picker_UI():
                 deg=math.atan2(dy,dx)*(180/math.pi)
                 deg=360-deg#changing direction
                 deg+=90#rotating color wheel
-                R,G,B=getRGB(deg,dst,1)
+                R,G,B=pixAnimations.getRGB(deg,dst,1)
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
@@ -177,7 +119,7 @@ def color_picker_UI():
                 deg=math.atan2(dy,dx)*(180/math.pi)
                 deg=360-deg#changing direction
                 deg+=90#rotating color wheel
-                R,G,B=getRGB(deg,dst,1)
+                R,G,B=pixAnimations.getRGB(deg,dst,1)
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
@@ -193,7 +135,7 @@ def color_picker_UI():
                 deg=math.atan2(dy,dx)*(180/math.pi)
                 deg=360-deg#changing direction
                 deg+=90#rotating color wheel
-                R,G,B=getRGB(deg,dst,1)
+                R,G,B=pixAnimations.getRGB(deg,dst,1)
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
@@ -209,7 +151,7 @@ def color_picker_UI():
                 deg=math.atan2(dy,dx)*(180/math.pi)
                 deg=360-deg#changing direction
                 deg+=90#rotating color wheel
-                R,G,B=getRGB(deg,dst,1)
+                R,G,B=pixAnimations.getRGB(deg,dst,1)
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
                 fb.pixel(x,y ,c)
@@ -235,9 +177,9 @@ def color_picker_touch(x,y):
                 deg-=360
             elif deg<0:
                 deg+=360
-            R,G,B=getRGB(deg,dst,1)
+            R,G,B=pixAnimations.getRGB(deg,dst,1)
             dsp.fill_hrect(0,0,240,25,color565(R,G,B))
-            pix.fill((int(R*getBrightness(1)),int(G*getBrightness(1)),int(B*getBrightness(1))))
+            pix.fill((int(R*pixAnimations.getBrightness(1)),int(G*pixAnimations.getBrightness(1)),int(B*pixAnimations.getBrightness(1))))
             pix.write()
             selected_color=[deg,dst]
     elif x>=150 and y>=270:
@@ -394,10 +336,10 @@ def display_param_line(x0,y0,paramName,paramValue):
     dsp.draw_text8x8(int(180+((60-len(paramValue)*9)/2)-1),y0+6,paramValue,whitec)
 def setting_color_squares(y):
     global pixColors
-    R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
+    R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
     dsp.fill_hrect(0,y,120,100,color565(R,G,B))
     dsp.draw_text8x8(29,y+46,'COLOR 1',0,color565(R,G,B))
-    R,G,B=getRGB(pixColors[1][0],pixColors[1][1],1)
+    R,G,B=pixAnimations.getRGB(pixColors[1][0],pixColors[1][1],1)
     dsp.fill_hrect(120,y,120,100,color565(R,G,B))
     dsp.draw_text8x8(150,y+46,'COLOR 2',0,color565(R,G,B))
     dsp.draw_vline(119,y,100,0)
@@ -432,7 +374,7 @@ def display_settings():
     if screenMode==0:
         display_param_line(0,135,'Temperature:',str(pixParams[4]))
     if screenMode==1:
-        R,G,B=getRGB(pixColors[0][0],pixColors[0][1],1)
+        R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
         dsp.fill_hrect(0,180,240,100,color565(R,G,B))
         dsp.draw_text8x8(98,226,'COLOR',0,color565(R,G,B))
     if screenMode==2 or screenMode==3:
