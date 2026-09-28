@@ -92,30 +92,35 @@ def color_picker_UI():
     r=100
     X=120
     Y=160
-    nr=10
-    cw=bytearray((r+1)*(r+1)*2)
-    fb=framebuf.FrameBuffer(cw,101,101,framebuf.RGB565)
-    for y in range(0,2*r):
-        for x in range(0,2*r):
+    nr=15#bigger number->faster displaying,but more RAM consumed
+    cw=bytearray(((2*r)+1)*(nr-1)*2)
+    fb=framebuf.FrameBuffer(cw,201,nr-1,framebuf.RGB565)
+    ly=0
+    for y in range(0,2*r+1):
+        for x in range(0,2*r+1):
             dy=-r+y
             dx=-r+x
-            
+            ry=(y-ly)-1
             dst=(dx**2+dy**2)**0.5
             if dst<=r:
                 deg=math.atan2(dy,dx)*(180/math.pi)
-                deg=360-deg#changing direction
                 deg+=90#rotating color wheel
                 R,G,B=pixAnimations.getRGB(deg,dst,1)
                     #dsp.draw_pixel(X+dx,Y-dy,color565(R,G,B))
                 c=color565(R,G,B)
                 c = ((c & 0xFF) << 8) | (c >> 8)
-                fb.pixel(x,y ,c)
-    dsp.block(X,Y-r,X+r,Y,cw)
-    fb.fill(0)
+                fb.pixel(x,ry,c)
+        if y-ly==nr-1:
+            lry=ly+(Y-r)
+            dsp.block(X-r,lry,X+r,lry+nr,cw)
+            fb.fill(0)
+            ly=y
+    lry=ly+(Y-r)
+    dsp.block(X-r,lry,X+r,lry+1+nr,cw)
     dspLED.on()
     dsp.draw_rectangle(150,270,90,50,color565(255,255,255))
     dsp.draw_text8x8(164,291, 'Confirm', color565(255,255,255))
-    cw=0
+    cw=None
 def color_picker_touch(x,y):
     global selected_color, colorPickerData,pixColors
     r=100
