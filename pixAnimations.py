@@ -289,7 +289,7 @@ def dynamic_color_range(color1,color2,speed,direction,reverse):
                     pixList[i][1]=highSat
             pix[i]=getRGB(pixList[i][0],pixList[i][1],brightness)
         pix.write()
-        sleep_ms((5000/(abs(satStep*(pixLength-1))+hueStep*(pixLength-1)))/speed)
+        sleep_ms(int((5000/(abs(satStep*(pixLength-1))+hueStep*(pixLength-1)))/speed))
 def dynamic_rainbow(saturation,speed,direction,reverse):
     global runAnimation, pixLength
     pixList=[(360/pixLength)*i for i in range(pixLength)]

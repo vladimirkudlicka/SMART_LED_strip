@@ -477,7 +477,7 @@ def settings_touch_5_7(x,y):
                 colorPickerData=[True,0]
             else:
                 colorPickerData=[True,1]
-            screenMode_picker_UI()
+            color_picker_UI()
 
         
 def settings_touch(x,y):
