@@ -353,7 +353,7 @@ def display_settings():
     dsp.draw_rectangle(0,10,240,22,whitec)
     a=screenModeNames[screenMode]
     dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),17,a,whitec)
-    #modes 1-4
+    #modes 0-4
     boolnames={'0':'OFF','1':'ON'}
     if screenMode<5:
         fading_on=str(pixParams[0])
@@ -386,15 +386,16 @@ def display_settings():
         display_param_line(0,40,'Speed:',str(pixParams[2]))
         display_param_line(0,75,'Saturation:',str(pixParams[5]))
         display_param_line(0,115,'Reverse:',str(bool(pixParams[12])))
+    #modes 6 and 7
     if screenMode==6 or screenMode==7:
         direction_names={0:'FD',1:'BG'}
         display_param_line(0,45,'Speed:',str(pixParams[2]))
-        display_param_line(0,70,'Direction',direction_names[pixParams[6]])
+        display_param_line(0,70,'Direction:',direction_names[pixParams[6]])
         display_param_line(0,95,'Reverse:',str(bool(pixParams[12])))
-    if screenMode==6:
-        display_param_line(0,120,'Saturation',str(pixParams[5]))
     if screenMode==7:
-        setting_color_squares()
+        display_param_line(0,120,'Saturation',str(pixParams[5]))
+    if screenMode==6:
+        setting_color_squares(190)
     if screenMode<=12:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -455,6 +456,30 @@ def settings_touch_5_7(x,y):
             pixParams[12]=int(not bool(pixParams[12]))
             dsp.fill_hrect(0,115,240,20,0)
             display_param_line(0,115,'Reverse:',str(bool(pixParams[12])))
+    elif screenMode==6 or screenMode==7:
+        direction_names={0:'FD',1:'BG'}
+        if 42.5<y and y<67.5:
+            numKeyData=[True,2]
+            numKey_UI()
+        elif 67.5<y and y<92.5:
+            pixParams[6]= int(not bool(pixParams[6]))
+            dsp.fill_hrect(0,70,240,20,0)
+            display_param_line(0,70,'Direction:',direction_names[pixParams[6]])
+        elif 92.5<y and y<117.5:
+            pixParams[12]=int(not bool(pixParams[12]))
+            dsp.fill_hrect(0,95,240,20,0)
+            display_param_line(0,95,'Reverse:', str(bool(pixParams[12])))
+        if screenMode==7 and 117.5<y and y<142.5:
+            numKeyData=[True,5]
+            numKey_UI()
+        elif screenMode==6 and 190<=y and y<=290:
+            if x<=120:
+                colorPickerData=[True,0]
+            else:
+                colorPickerData=[True,1]
+            screenMode_picker_UI()
+
+        
 def settings_touch(x,y):
     global screenMode,screenModePickerActive
     if y<=32:
@@ -467,7 +492,6 @@ def settings_touch(x,y):
             settings_touch_0_4(x,y)
         elif screenMode<=7:
             settings_touch_5_7(x,y)
-
 
 #main loop
 pixAnimations.runAnimation=True
