@@ -102,7 +102,9 @@ def fading(lvl,up,minBright,maxBright,fadetype):
     elif fadetype==0:
         bright=minBright+((maxBright-minBright)*lvl)
     return bright,lvl,up
-
+def pixOff():
+    pix.fill((0,0,0))
+    pix.write()
 #NeoPixel modes
 def white(temperature,fadingActive,fminBrightness,fspeed,fadetype):
     global runAnimation

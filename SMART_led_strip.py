@@ -80,15 +80,48 @@ tm=time()+rData['offset']
 dtmt=localtime(tm)
 rtc.datetime((dtmt[0],dtmt[1],dtmt[2],dtmt[7],dtmt[3],dtmt[4],dtmt[5],0))
 dsp.clear()
+#neopixel modes start-stop
+def RunNeoPixelMode():
+    global screenMode,pixParams,pixColors
+    if screenMode<=12:
+        pixAnimations.runAnimation=False
+        sleep(1.5)
+        pixAnimations.runAnimation=True
+        if screenMode==0:
+            _thread.start_new_thread(pixAnimations.white,(pixParams[4],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+        elif screenMode==1:
+            _thread.start_new_thread(pixAnimations.monocolor,(pixColors[0],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+        elif screenMode==2:
+            _thread.start_new_thread(pixAnimations.bicolor,(pixColors[0],pixColors[1],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+        elif screenMode==3:
+            _thread.start_new_thread(pixAnimations.color_range,(pixColors[0],pixColors[1],pixParams[0],pixParams[1],pixParams[2],pixParams[3],pixParams[12]))
+        elif screenMode==4:
+            _thread.start_new_thread(pixAnimations.static_rainbow,(pixParams[5],pixParams[0],pixParams[1],pixParams[2],pixParams[3],pixParams[12]))
+        elif screenMode==5:
+            _thread.start_new_thread(pixAnimations.rainbow_scrolling,(pixParams[2],pixParams[5],pixParams[12]))
+        elif screenMode==6:
+            _thread.start_new_thread(pixAnimations.dynamic_color_range,(pixColors[0],pixColors[1],pixParams[2],pixParams[6],pixParams[12]))
+        elif screenMode==7:
+            _thread.start_new_thread(pixAnimations.dynamic_rainbow,(pixParams[5],pixParams[2],pixParams[6],pixParams[12]))
+        elif screenMode==8:
+            _thread.start_new_thread(pixAnimations.running_light_full,(pixColors[0],pixParams[7],pixParams[8],pixParams[2]))
+        elif screenMode==9:
+            _thread.start_new_thread(pixAnimations.running_light_center,(pixColors[0],pixParams[7],pixParams[8],pixParams[2]))
+        elif screenMode==10:
+            _thread.start_new_thread(pixAnimations.stars,(pixParams[2],pixParams[9]))
+        elif screenMode==11:
+            _thread.start_new_thread(pixAnimations.soundbar_monocolor,(pixColors[0],pixParams[10],pixParams[11]))
+        elif screenMode==12:
+            _thread.start_new_thread(pixAnimations.soundbar_color_range,(pixColors[0],pixParams[1],pixParams[10],pixParams[11],pixParams[12]))
+#diplay UI
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
 selected_color=[0,0]
 def color_picker_UI():
+    pixAnimations.runAnimation=False
     dsp.clear()
     dspLED.off()
-    pix.fill((0,0,0))
-    pix.write()
     r=100
     X=120
     Y=160
@@ -96,6 +129,9 @@ def color_picker_UI():
     cw=bytearray(((2*r)+1)*(nr-1)*2)
     fb=framebuf.FrameBuffer(cw,201,nr-1,framebuf.RGB565)
     ly=0
+    sleep_ms(50)
+    pix.fill((0,0,0))
+    pix.write()
     for y in range(0,2*r+1):
         for x in range(0,2*r+1):
             dy=-r+y
@@ -146,6 +182,7 @@ def color_picker_touch(x,y):
     elif x>=150 and y>=270:
         colorPickerData[0]=False
         pixColors[colorPickerData[1]]=selected_color
+        pixAnimations.pixOff()
         dsp.clear()
         display_settings()
 #numeric keyboard
@@ -163,7 +200,7 @@ def validate_num(pixParamIndex,value):
             OK=True
         else:
             EMSG='1-500'
-    elif pixParamIndex== 3:
+    elif pixParamIndex== 4:
         if  0<=value<=255:
             OK=True
         else:
@@ -313,9 +350,9 @@ def display_settings():
     dsp.clear()
     dsp.fill_hrect(0,0,240,8,0)
     dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',whitec)
-    dsp.draw_rectangle(0,10,240,12,whitec)
+    dsp.draw_rectangle(0,10,240,22,whitec)
     a=screenModeNames[screenMode]
-    dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),12,a,whitec)
+    dsp.draw_text8x8(int((240-len(a)*(9)-1)/2),17,a,whitec)
     #modes 1-4
     boolnames={'0':'OFF','1':'ON'}
     if screenMode<5:
@@ -325,68 +362,68 @@ def display_settings():
         fadetype=str(pixParams[3])
         fspeed=str(pixParams[2])
         
-        dsp.draw_text8x8(0,25,'Fading settings:',whitec)
+        dsp.draw_text8x8(0,35,'Fading settings:',whitec)
 
-        display_param_line(5,35,'Fading active:',boolnames[fading_on])
-        display_param_line(5,60,'Fade type:',fadetypes[fadetype])
-        display_param_line(5,85,'Min. Brightness 0-100:',fminBrightness)
-        display_param_line(5,110,'Fading speed:',fspeed)
+        display_param_line(5,45,'Fading active:',boolnames[fading_on])
+        display_param_line(5,70,'Fade type:',fadetypes[fadetype])
+        display_param_line(5,95,'Min. Brightness 0-100:',fminBrightness)
+        display_param_line(5,120,'Fading speed:',fspeed)
 
     if screenMode==0:
-        display_param_line(0,135,'Temperature:',str(pixParams[4]))
+        display_param_line(0,145,'Temperature:',str(pixParams[4]))
     if screenMode==1:
         R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
-        dsp.fill_hrect(0,180,240,100,color565(R,G,B))
-        dsp.draw_text8x8(98,226,'COLOR',0,color565(R,G,B))
+        dsp.fill_hrect(0,190,240,100,color565(R,G,B))
+        dsp.draw_text8x8(98,236,'COLOR',0,color565(R,G,B))
     if screenMode==2 or screenMode==3:
-        setting_color_squares(180)
+        setting_color_squares(190)
     if screenMode==3 or screenMode==4:
-        display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
+        display_param_line(0,145,'Reverse:',str(bool(pixParams[12])))
     if screenMode==4:
-        display_param_line(0,160,'Saturation:',str(pixParams[5]))
+        display_param_line(0,170,'Saturation:',str(pixParams[5]))
     #mode 5
     if screenMode==5:
-        display_param_line(0,30,'Speed:',str(pixParams[2]))
-        display_param_line(0,65,'Saturation:',str(pixParams[5]))
-        display_param_line(0,100,'Reverse:',str(bool(pixParams[13])))
+        display_param_line(0,40,'Speed:',str(pixParams[2]))
+        display_param_line(0,75,'Saturation:',str(pixParams[5]))
+        display_param_line(0,115,'Reverse:',str(bool(pixParams[12])))
     if screenMode==6 or screenMode==7:
         direction_names={0:'FD',1:'BG'}
-        display_param_line(0,30,'Speed:',str(pixParams[2]))
-        display_param_line(0,55,'Direction',direction_names[pixParams[6]])
-        display_param_line(0,80,'Reverse:',str(bool(pixParams[13])))
+        display_param_line(0,45,'Speed:',str(pixParams[2]))
+        display_param_line(0,70,'Direction',direction_names[pixParams[6]])
+        display_param_line(0,95,'Reverse:',str(bool(pixParams[12])))
     if screenMode==6:
-        display_param_line(0,105,'Saturation',str(pixParams[5]))
+        display_param_line(0,120,'Saturation',str(pixParams[5]))
     if screenMode==7:
         setting_color_squares()
-    if screenMode<=11:
+    if screenMode<=12:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
 #settings touch processing
 def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
     boolnames={'0':'OFF','1':'ON'}   
-    if y>=35 and y<=130:
+    if y>=35 and y<=142.5:
         ia=0
         fadetypes={'0':'linear','1':'exp.'}
         for i in range(1,5):
-            if y<i*25+32.5:
+            if y<i*25+42.5:
                 ia=i
                 break
         if ia==1:
             pixParams[0]=int(not bool(pixParams[0]))
-            dsp.fill_hrect(0,35,240,20,0)
-            display_param_line(5,35,'Fading active:',boolnames[str(pixParams[0])])
+            dsp.fill_hrect(0,45,240,20,0)
+            display_param_line(5,45,'Fading active:',boolnames[str(pixParams[0])])
         if ia==2:
             pixParams[3]=int(not bool(pixParams[3]))
-            dsp.fill_hrect(0,60,240,20,0)
-            display_param_line(5,60,'Fade type:',fadetypes[str(pixParams[3])])
+            dsp.fill_hrect(0,70,240,20,0)
+            display_param_line(5,70,'Fade type:',fadetypes[str(pixParams[3])])
         if ia==3:
             numKeyData=[True,1]
             numKey_UI()
         if ia==4:
             numKeyData=[True,2]
             numKey_UI()
-    elif (screenMode==1 or screenMode==2 or screenMode==3) and (y>=180 and y<=280):
+    elif (screenMode==1 or screenMode==2 or screenMode==3) and (y>=190 and y<=290):
         if screenMode==1:
             colorPickerData=[True,0]
         else:
@@ -395,39 +432,44 @@ def settings_touch_0_4(x,y):
             else:
                 colorPickerData=[True,1]
         color_picker_UI()
-    elif (screenMode==3 or screenMode==4) and (y>132.5 and y<157.5):
-        pixParams[13]=int(not bool(pixParams[13]))
-        dsp.fill_hrect(0,135,240,20,0)
-        display_param_line(0,135,'Reverse:',str(bool(pixParams[13])))
-    elif screenMode==4 and y>157.5 and y<182.5:
+    elif (screenMode==3 or screenMode==4) and (y>142.5 and y<167.5):
+        pixParams[12]=int(not bool(pixParams[12]))
+        dsp.fill_hrect(0,145,240,20,0)
+        display_param_line(0,145,'Reverse:',str(bool(pixParams[12])))
+    elif screenMode==4 and y>167.5 and y<192.5:
         numKeyData=[True,5]
         numKey_UI()
-    elif screenMode==0 and y>132.5 and y<157.5:
+    elif screenMode==0 and y>142.5 and y<167.5:
         numKeyData=[True,4]
         numKey_UI()
 def settings_touch_5_7(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
     if screenMode==5:
-        if 25<=y and y<=57.5:
+        if 35<=y and y<=67.5:
             numKeyData=[True,2]
             numKey_UI()
-        elif 57.5<y and y<=92.5:
+        elif 67.5<y and y<=97.5:
             numKeyData=[True,5]
             numKey_UI()
-        elif 92.5<=y and y<=127.5:
-            pixParams[13]=int(not bool(pixParams[13]))
-            dsp.fill_hrect(0,100,240,20,0)
-            display_param_line(0,100,'Reverse:',str(bool(pixParams[13])))
+        elif 97.5<=y and y<=137.5:
+            pixParams[12]=int(not bool(pixParams[12]))
+            dsp.fill_hrect(0,115,240,20,0)
+            display_param_line(0,115,'Reverse:',str(bool(pixParams[12])))
 def settings_touch(x,y):
     global screenMode,screenModePickerActive
-    if y<=22:
+    if y<=32:
         screenMode_picker_UI()
         screenModePickerActive=True
+    elif y>=300 and screenMode<=12:
+        RunNeoPixelMode()
     else:
         if screenMode<=4:
             settings_touch_0_4(x,y)
         elif screenMode<=7:
             settings_touch_5_7(x,y)
+
+
+#main loop
 pixAnimations.runAnimation=True
 import _thread
 _thread.start_new_thread(pixAnimations.stars,(100,4))
