@@ -13,6 +13,7 @@ import socket
 import ntptime
 #neopixel
 import neopixel
+import _thread
 #display init
 dspSPI=SPI(2,baudrate=40000000)#sck=Pin(18),miso=Pin(19),mosi=Pin(23)
 dsp=Display(dspSPI,cs=Pin(5),rst=Pin(22),dc=Pin(17),rotation=270)
@@ -408,6 +409,9 @@ def display_settings():
         display_param_line(0,70,'Style:',stylenames[pixParams[8]])
         display_param_line(0,95,'Trace width:',str(pixParams[7]))
         setting_color_monocolor_square(190)
+    if screenMode==10:
+        display_param_line(0,50,'Speed:',str(pixParams[2]))
+        display_param_line(0,100,'Nummber of stars:',str(pixParams[9]))
 #settings touch processing
 def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
@@ -505,9 +509,17 @@ def settings_touch_8_9(x,y):
     elif 190<=y and y<=290:
         colorPickerData=[True,0]
         color_picker_UI()
+def settings_touch_10(x,y):
+    global numKeyData
+    if 42.5<=y and y<=72.5:
+        numKeyData=[True,2]
+        numKey_UI()
+    elif 97.5<=y and y<=122.5:
+        numKeyData=[True,9]
+        numKey_UI()
 def settings_touch(x,y):
     global screenMode,screenModePickerActive
-    if y<=32:
+    if y<=32: 
         screenMode_picker_UI()
         screenModePickerActive=True
     elif y>=300 and screenMode<=12:
@@ -519,11 +531,9 @@ def settings_touch(x,y):
             settings_touch_5_7(x,y)
         elif screenMode<=9:
             settings_touch_8_9(x,y)
-
+        elif screenMode==10:
+            settings_touch_10(x,y)
 #main loop
-pixAnimations.runAnimation=True
-import _thread
-_thread.start_new_thread(pixAnimations.stars,(100,4))
 display_settings()
 lm=rtc.datetime()[5]
 while True: 
