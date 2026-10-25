@@ -333,7 +333,7 @@ def display_param_line(x0,y0,paramName,paramValue):
     dsp.draw_text8x8(x0,y0+6,paramName,whitec)
     dsp.draw_rectangle(180,y0,55,20,whitec)  
     dsp.draw_text8x8(int(180+((60-len(paramValue)*9)/2)-1),y0+6,paramValue,whitec)
-def setting_color_squares(y):
+def setting_color_bicolor_squares(y):
     global pixColors
     R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
     dsp.fill_hrect(0,y,120,100,color565(R,G,B))
@@ -380,7 +380,7 @@ def display_settings():
     if screenMode==1:
         setting_color_monocolor_square(190)
     if screenMode==2 or screenMode==3:
-        setting_color_squares(190)
+        setting_color_bicolor_squares(190)
     if screenMode==3 or screenMode==4:
         display_param_line(0,145,'Reverse:',str(bool(pixParams[12])))
     if screenMode==4:
@@ -399,7 +399,7 @@ def display_settings():
     if screenMode==7:
         display_param_line(0,120,'Saturation',str(pixParams[5]))
     if screenMode==6:
-        setting_color_squares(190)
+        setting_color_bicolor_squares(190)
     if screenMode<=12:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
@@ -412,6 +412,15 @@ def display_settings():
     if screenMode==10:
         display_param_line(0,50,'Speed:',str(pixParams[2]))
         display_param_line(0,100,'Number of stars:',str(pixParams[9]))
+    if screenMode==11 or screenMode==12:
+        orientation_names={0:'left',1:'right',2:'center'}
+        display_param_line(0,50,'Orientation:',orientation_names[pixParams[11]])
+        display_param_line(0,80,'Max. sound value:',str(pixParams[10]))
+    if screenMode==11:
+        setting_color_monocolor_square(190)
+    if screenMode==12:
+        display_param_line(0,110,'Reversed:',str(bool(pixParams[12])))
+        setting_color_bicolor_squares(190)
 #settings touch processing
 def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
@@ -517,6 +526,30 @@ def settings_touch_10(x,y):
     elif 97.5<=y and y<=122.5:
         numKeyData=[True,9]
         numKey_UI()
+def settings_touch_11_12(x,y):
+    global numKeyData,colorPickerData,screenMode,pixParams
+    if 47.5<y and y<72.5:
+        orientation_names={0:'left',1:'right',2:'center'}
+        pixParams[11]+=1
+        if pixParams[11]>2:
+            pixParams[11]=0
+        dsp.fill_hrect(0,50,240,20,0)
+        display_param_line(0,50,'Orientation:',orientation_names[pixParams[11]])
+    elif 77.5<y and y<102.5:
+        numKeyData=[True,10]
+        numKey_UI()
+    elif 107.5<y and y<132.5 and screenMode==12:
+        pixParams[12]=int(not bool(pixParams[12]))
+        dsp.fill_hrect(0,110,240,20,0)
+        display_param_line(0,110,'Reversed:',str(bool(pixParams[12])))
+    elif 190<=y and y<=290:
+        if screenMode==11:
+            colorPickerData=[True,0]
+        elif screenMode==12 and x<=120:
+            colorPickerData=[True,0]
+        elif screenMode==12 and x>120:
+            colorPickerData=[True,1]
+        color_picker_UI()
 def settings_touch(x,y):
     global screenMode,screenModePickerActive
     if y<=32: 
@@ -533,6 +566,8 @@ def settings_touch(x,y):
             settings_touch_8_9(x,y)
         elif screenMode==10:
             settings_touch_10(x,y)
+        elif screenMode==11 or screenMode==12:
+            settings_touch_11_12(x,y)
 #main loop
 display_settings()
 lm=rtc.datetime()[5]
