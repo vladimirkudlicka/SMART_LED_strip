@@ -322,7 +322,7 @@ def screenMode_picker_touch(x,y):
         space=(320-(len(screenModeNames)*8))/(len(screenModeNames)+1)
         if y>((space+8)*i+space/2):
             break
-    print(i)
+    #print(i)
     screenMode=i
     screenModePickerActive=False
     display_settings()
@@ -341,6 +341,11 @@ def setting_color_squares(y):
     dsp.fill_hrect(120,y,120,100,color565(R,G,B))
     dsp.draw_text8x8(150,y+46,'COLOR 2',0,color565(R,G,B))
     dsp.draw_vline(119,y,100,0)
+def setting_color_monocolor_square(y):
+    global pixColors
+    R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
+    dsp.fill_hrect(0,y,240,100,color565(R,G,B))
+    dsp.draw_text8x8(98,y+46,'COLOR',0,color565(R,G,B))
 def display_settings():
     global screenMode,screenModeNames,pixParams
     whitec=color565(255,255,255)
@@ -372,9 +377,7 @@ def display_settings():
     if screenMode==0:
         display_param_line(0,145,'Temperature:',str(pixParams[4]))
     if screenMode==1:
-        R,G,B=pixAnimations.getRGB(pixColors[0][0],pixColors[0][1],1)
-        dsp.fill_hrect(0,190,240,100,color565(R,G,B))
-        dsp.draw_text8x8(98,236,'COLOR',0,color565(R,G,B))
+        setting_color_monocolor_square(190)
     if screenMode==2 or screenMode==3:
         setting_color_squares(190)
     if screenMode==3 or screenMode==4:
@@ -399,6 +402,12 @@ def display_settings():
     if screenMode<=12:
         dsp.draw_rectangle(0,300,240,20,whitec)
         dsp.draw_text8x8(84,306,'Run mode',whitec)
+    if screenMode==8 or screenMode==9:
+        stylenames={0:'left',1:'right',2:'bounce'}
+        display_param_line(0,45,'Speed:',str(pixParams[2]))
+        display_param_line(0,70,'Style:',stylenames[pixParams[8]])
+        display_param_line(0,95,'Trace width:',str(pixParams[7]))
+        setting_color_monocolor_square(190)
 #settings touch processing
 def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
@@ -478,8 +487,24 @@ def settings_touch_5_7(x,y):
             else:
                 colorPickerData=[True,1]
             color_picker_UI()
-
-        
+def settings_touch_8_9(x,y):
+    global numKeyData, colorPickerData,pixParams
+    if 42.5<y and y<67.5:
+        numKeyData=[True,2]
+        numKey_UI()
+    elif 67.5<y and y<92.5:
+        stylenames={0:'left',1:'right',2:'bounce'}
+        pixParams[8]+=1
+        if pixParams[8]>2:
+            pixParams[8]=0
+        dsp.fill_hrect(0,70,240,20,0)
+        display_param_line(0,70,'Style:',stylenames[pixParams[8]])
+    elif 92.5<y and y<117.5:
+        numKeyData=[True,7]
+        numKey_UI()
+    elif 190<=y and y<=290:
+        colorPickerData=[True,0]
+        color_picker_UI()
 def settings_touch(x,y):
     global screenMode,screenModePickerActive
     if y<=32:
@@ -492,6 +517,8 @@ def settings_touch(x,y):
             settings_touch_0_4(x,y)
         elif screenMode<=7:
             settings_touch_5_7(x,y)
+        elif screenMode<=9:
+            settings_touch_8_9(x,y)
 
 #main loop
 pixAnimations.runAnimation=True
