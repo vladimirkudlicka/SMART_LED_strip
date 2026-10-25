@@ -95,8 +95,10 @@ def fading(lvl,up,minBright,maxBright,fadetype):
         lvl-=0.01
     if lvl>=1  and up:
         up=False
+        lvl=1
     elif lvl<=0 and not up:
         up=True
+        lvl=0
     if fadetype==1:
         bright=minBright+((maxBright-minBright)*((100**lvl)/100))
     elif fadetype==0:

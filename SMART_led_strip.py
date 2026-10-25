@@ -89,15 +89,15 @@ def RunNeoPixelMode():
         sleep(1.5)
         pixAnimations.runAnimation=True
         if screenMode==0:
-            _thread.start_new_thread(pixAnimations.white,(pixParams[4],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+            _thread.start_new_thread(pixAnimations.white,(pixParams[4],pixParams[0],pixParams[1]/100,pixParams[2],pixParams[3]))
         elif screenMode==1:
-            _thread.start_new_thread(pixAnimations.monocolor,(pixColors[0],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+            _thread.start_new_thread(pixAnimations.monocolor,(pixColors[0],pixParams[0],pixParams[1]/100,pixParams[2],pixParams[3]))
         elif screenMode==2:
-            _thread.start_new_thread(pixAnimations.bicolor,(pixColors[0],pixColors[1],pixParams[0],pixParams[1],pixParams[2],pixParams[3]))
+            _thread.start_new_thread(pixAnimations.bicolor,(pixColors[0],pixColors[1],pixParams[0],pixParams[1]/100,pixParams[2],pixParams[3]))
         elif screenMode==3:
-            _thread.start_new_thread(pixAnimations.color_range,(pixColors[0],pixColors[1],pixParams[0],pixParams[1],pixParams[2],pixParams[3],pixParams[12]))
+            _thread.start_new_thread(pixAnimations.color_range,(pixColors[0],pixColors[1],pixParams[0],pixParams[1]/100,pixParams[2],pixParams[3],pixParams[12]))
         elif screenMode==4:
-            _thread.start_new_thread(pixAnimations.static_rainbow,(pixParams[5],pixParams[0],pixParams[1],pixParams[2],pixParams[3],pixParams[12]))
+            _thread.start_new_thread(pixAnimations.static_rainbow,(pixParams[5],pixParams[0],pixParams[1]/100,pixParams[2],pixParams[3],pixParams[12]))
         elif screenMode==5:
             _thread.start_new_thread(pixAnimations.rainbow_scrolling,(pixParams[2],pixParams[5],pixParams[12]))
         elif screenMode==6:
@@ -113,7 +113,7 @@ def RunNeoPixelMode():
         elif screenMode==11:
             _thread.start_new_thread(pixAnimations.soundbar_monocolor,(pixColors[0],pixParams[10],pixParams[11]))
         elif screenMode==12:
-            _thread.start_new_thread(pixAnimations.soundbar_color_range,(pixColors[0],pixParams[1],pixParams[10],pixParams[11],pixParams[12]))
+            _thread.start_new_thread(pixAnimations.soundbar_color_range,(pixColors[0],pixColors[1],pixParams[10],pixParams[11],pixParams[12]))
 #diplay UI
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
@@ -411,7 +411,7 @@ def display_settings():
         setting_color_monocolor_square(190)
     if screenMode==10:
         display_param_line(0,50,'Speed:',str(pixParams[2]))
-        display_param_line(0,100,'Nummber of stars:',str(pixParams[9]))
+        display_param_line(0,100,'Number of stars:',str(pixParams[9]))
 #settings touch processing
 def settings_touch_0_4(x,y):
     global screenMode,colorPickerData,numKeyData,screenMode,screenModePickerActive,pixParams
