@@ -1,6 +1,6 @@
 #general
 from machine import SPI,SoftSPI, Pin, ADC,RTC,reset
-from time import sleep,sleep_ms,time,localtime
+from time import sleep,sleep_ms,time,localtime,ticks_ms
 #dislay
 from ili9341 import Display,color565#SRC:https://github.com/rdagger/micropython-ili9341/blob/master/ili9341.py
 from xtp2046 import Touch
@@ -21,6 +21,8 @@ dspLED=Pin(16,Pin.OUT)
 dspLED.on()
 dsp.clear(0)
 #touch Handling
+last_dsp_touch=ticks_ms()
+display_off=False
 def touched(x,y):
     y=330-y
     global touch
@@ -578,9 +580,16 @@ while True:
         weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
         dsp.fill_hrect(0,0,240,8,0)
         dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',color565(255,255,255))
+    if ticks_ms()-last_dsp_touch>=120000 and not display_off:
+        dspLED.off()
+        display_off=True
     if touch[0]:
         touch[0]=False
-        if colorPickerData[0]:
+        last_dsp_touch=ticks_ms()
+        if display_off:
+            display_off=False
+            dspLED.on()
+        elif colorPickerData[0]:
             color_picker_touch(touch[1],touch[2])
         elif numKeyData[0]:
             numKey_touch(touch[1],touch[2])
