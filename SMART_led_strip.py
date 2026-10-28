@@ -133,8 +133,7 @@ def color_picker_UI():
     fb=framebuf.FrameBuffer(cw,201,nr-1,framebuf.RGB565)
     ly=0
     sleep_ms(50)
-    pix.fill((0,0,0))
-    pix.write()
+    pixAnimations.pixOff()
     for y in range(0,2*r+1):
         for x in range(0,2*r+1):
             dy=-r+y

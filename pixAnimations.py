@@ -107,6 +107,31 @@ def fading(lvl,up,minBright,maxBright,fadetype):
 def pixOff():
     pix.fill((0,0,0))
     pix.write()
+def pixOff_effect():
+    global pixLength
+    pixList=list(pix).copy()
+    if pixLength%2==0:
+        c1=(pixLength//2)-1
+        c2=pixLength//2
+        for i in range((pixLength//2)+1):
+            pix.fill((0,0,0))
+            for j in range(c2,pixLength-i):
+                pix[j]=pixList[j]
+            for j in range(c1,-1+i,-1):
+                pix[j]=pixList[j]
+            sleep_ms(4000//pixLength)
+            pix.write()
+    else:
+        c=pixList//2
+        for i in range((pixLength//2)+1):
+            pix.fill((0,0,0))
+            for j in range(c,pixLength-i):
+                pix[j]=pixList[j]
+            for j in range(c,-1+i,-1):
+                pix[j]=pixList[j]
+            sleep_ms(4000//pixLength)
+            pix.write()
+
 #NeoPixel modes
 def white(temperature,fadingActive,fminBrightness,fspeed,fadetype):
     global runAnimation
