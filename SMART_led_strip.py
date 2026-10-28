@@ -40,7 +40,8 @@ dsp.draw_text8x8(75,300, 'by Vladimir Kudlicka', color565(255,255,255))
 sound_sens_pin=34
 BrightPot_pin=35
 random_seed_src_pin=36#leave this pin unconnected
-
+button_pin=33
+button=Pin(button_pin,Pin.IN,Pin.PULL_UP)
 #NeoPixel config
 import pixAnimations
 pixLength=8
@@ -117,6 +118,21 @@ def RunNeoPixelMode():
         elif screenMode==12:
             _thread.start_new_thread(pixAnimations.soundbar_color_range,(pixColors[0],pixColors[1],pixParams[10],pixParams[11],pixParams[12]))
 #diplay UI
+#button function
+last_button_press=ticks_ms()
+BFLAG_settings_screen=False
+BFLAG_pixOff=False
+def button_press(a):
+    global last_button_press,BFLAG_settings_screen,BFLAG_pixOff
+    if a.value()==0:
+        last_button_press=ticks_ms()
+    else:
+        diff=ticks_ms()-last_button_press
+        if 50<=diff and diff<=1000:
+            BFLAG_settings_screen=True
+        elif 2000<=diff and diff<=7000:
+            BFLAG_pixOff=True  
+button.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=button_press)
 #color picker displaying + touchscreen reaction
 colorPickerData=[False,0]#active flag, pixColors list index
 pixColors=[[0,0],[0,0]]
@@ -573,15 +589,18 @@ def settings_touch(x,y):
 display_settings()
 lm=rtc.datetime()[5]
 while True: 
+    #time update
     dtm=rtc.datetime()
     if lm!=dtm[5] and not(screenModePickerActive or numKeyData[0] or colorPickerData[0]):
         lm=dtm[5]
         weekdays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
         dsp.fill_hrect(0,0,240,8,0)
         dsp.draw_text8x8(0,0,f'{dtm[4]}:{dtm[5]} {weekdays[dtm[3]]} {dtm[2]}/{dtm[1]}',color565(255,255,255))
+    #display auto shutdown
     if ticks_ms()-last_dsp_touch>=120000 and not display_off:
         dspLED.off()
         display_off=True
+    #touch reaction
     if touch[0]:
         touch[0]=False
         last_dsp_touch=ticks_ms()
@@ -596,4 +615,18 @@ while True:
             screenMode_picker_touch(touch[1],touch[2])
         else:
             settings_touch(touch[1],touch[2])
+    #button flags
+    if BFLAG_pixOff:
+        BFLAG_pixOff=False
+        pixAnimations.runAnimation=False
+        sleep(1)
+        _thread.start_new_thread(pixAnimations.pixOff_effect,())
+    if BFLAG_settings_screen and(colorPickerData[0] or numKeyData[0] or screenModePickerActive):
+        BFLAG_settings_screen=False
+        colorPickerData[0]=False
+        numKeyData[0]=False
+        screenModePickerActive=False
+        display_settings()
+    elif BFLAG_settings_screen:
+        BFLAG_settings_screen=False
     sleep(0.1)
