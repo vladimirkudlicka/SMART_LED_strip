@@ -92,13 +92,25 @@ https://github.com/user-attachments/assets/183dcf6d-ea0a-4f41-9295-07365bde01a7
 The NeoPixel strip displays a color gradient from color 1 to color 2, that gradualy changes its position on the strip over time. \
 Parameters: speed; direction; reverse; color1; color2 \
 Image and video: \
-<img width="306" height="408" alt="20261031_200327 (1)" src="https://github.com/user-attachments/assets/cb8c2f83-221d-4f18-9c27-cdf01a2b8586" />
-https://github.com/user-attachments/assets/1ba4629d-4682-4192-b056-e391df68980b
+https://github.com/user-attachments/assets/1ba4629d-4682-4192-b056-e391df68980b \
+<img width="3060" height="4080" alt="20261031_200327 (2)" src="https://github.com/user-attachments/assets/b7e85ca3-4bcb-4961-af08-52dfebb7b86a" />
 ### Dynamic rainbow
 The NeoPixel strip displays a color gradient of the whole color spectrum, that gradualy changes its position on the strip over time. \
 Parameters: speed; direction; reverse; saturation \
 Video: \
 https://github.com/user-attachments/assets/8001060a-3fec-48e5-8061-b716112b7465
+### running light-full
+Only one pixel, or a group of pixel is lit up in a selected color. This group of pixels changes its led indexes, the lit up pixels move on the strip, creating an effect as if  the light was 'running' along the NeoPixel strip. \
+In this mode the light is 'running' along the whole strip \
+Parameters: speed; style; trace width; \
+Video: \
+https://github.com/user-attachments/assets/ad13179d-7fc6-4abf-9766-d419733a2c69
+### Running light-center 
+Only one pixel, or a group of pixel is lit up in a selected color. This group of pixels changes its led indexes, the lit up pixels move on the strip, creating an effect as if  the light was 'running' along the NeoPixel strip. \
+In this mode the light is 'running' in along 2 separate sectors. (Halves of the strip) \
+Parameters: speed; style; trace width; \
+Video: \
+Uploading 20261031_202440.mp4…
 ## Parameters description
 ## System design
 ## Youtube videos note
