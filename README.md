@@ -73,7 +73,8 @@ Images: \
 <img width="408" height="306" alt="20261031_19202" src="https://github.com/user-attachments/assets/c5f36225-3023-492e-b675-63877ca25923" />
 ### Color range
 The NeoPixel strip displays a static color gradient from color1 to color2.The pixel color changes gradualy along the strip length. You can optionaly turn on fading (periodic change of brighntness).\
-Parameters: fading active; fading type; minimal brightness; (fading) speed; color1; color2;reverse
+Non-reversed gradient is always created from color1 to color2 in the clockwise direction on the color wheel. \
+Parameters: fading active; fading type; minimal brightness; (fading) speed; color1; color2; reverse
 Images: \
 <img width="408" height="306" alt="20261031_193313" src="https://github.com/user-attachments/assets/24719b4d-587a-471d-aa35-37a69d7b0dfa" />
 <img width="408" height="306" alt="20261031_193235" src="https://github.com/user-attachments/assets/d1f7fa3e-9221-4637-bd31-2c8c737090dc" />
@@ -170,6 +171,9 @@ Possible values: \
 -right: start->pixel with the highest index end-> pixel 0 \
 -center: start-> center pixels end-> edge pixels (it looks like 2 soundbars are displayed in this orietation, one right one left) 
 ### Reverse
+Reverses the order of colors in a color gradient. \
+e.g if pixel 0 was green and the last pixel was blue and there was a gradient between them, after reverse is applied pixel 0 will be blue and the last pixel will be green. \
+In rainbow scrolling mode it reverses the direction in which it goes through the color spectrum.
 ## System design
 ## Youtube videos note
 
