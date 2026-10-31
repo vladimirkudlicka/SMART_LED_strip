@@ -189,14 +189,20 @@ Part list: \
 After the ESP32 is connected to WiFi I use a built in library called ntptime, to set the ESP32's RTC to UTC time. After that I use ureguests to find ESP32's timezone based on ESP32's IP adress. I use this API for it: http://ip-api.com/json/?fields=timezone,offset . Then I add the time offset to the UTC time from the RTC and set RTC time again, but now with time offset depending on ESP32's timzone.
 ### Modes running
 Modes and everything they need to run is in the pixAnimations module I coded myself. I had to move it there because of optimization. \
-The modes are ran **using threading** so that they can run smoothly, while also keeping display reactions fast. I use a flag called runAnimation to stop the modes. Each mode is a function containing the mode program. while runAnimation loop is used instead of a while True loop, so that I am able to stop the modes. Everythime you click RunMode button on the display a function in the main.py is called, this funtion sets runAnimation to False (stops the current mode) waits and then sets it back to True. Then it starts a new thread, which is a mode funtion and it also passes all importatnt parameter to the mode function.(starts the new mode) \
-Modes parameters are stored inside a pixParams list in main.py. Colors are stored as a list pixColors=[[hue1,sat1],[hue2,sat2]] also in main.py. Parameters are shared for all modes. (If you set saturation to 50 on one mode it will also be 50 on another one.)
+The modes are ran **using threading** so that they can run smoothly, while also keeping display reactions fast. I use a flag called runAnimation to stop the modes. Each mode is a function containing the mode program. while runAnimation loop is used instead of a while True loop, so that I am able to stop the modes. Everythime you click RunMode button on the display a function in the SMART_led_strip.py is called, this funtion sets runAnimation to False (stops the current mode) waits and then sets it back to True. Then it starts a new thread, which is a mode funtion and it also passes all importatnt parameter to the mode function.(starts the new mode) \
+Modes parameters are stored inside a pixParams list in SMART_led_strip.py. Colors are stored as a list pixColors=[[hue1,sat1],[hue2,sat2]] also in SMART_led_strip.py. Parameters are shared for all modes. (If you set saturation to 50 on one mode it will also be 50 on another one.)
 ## Displaying UI
 Each UI type has its own display function. Numeric keyboard, mode picker, color picker and mode settings. They all have their own display function. \
 If color picker, mode picker or numeric keyboard UI is active they each set their own active flag to True.
 ## Touch reaction
-When you touch the display an INT-PIN interrupt is triggered. In the ISR (Interrupt Service Routine) the touch flag is set also with the x,y coordinates. \
-
+When you touch the display an INT-PIN interrupt is triggered. In the ISR (Interrupt Service Routine) the touch flag is set to True and it also contains the x,y coordinates. (it is a list) \
+Then the main loop in SMART_led_strip.py checks for the flag. If it true it checks the UI flags if there is color picker , mode picker or numeric keyboard running. If yes it calls the UI's touch handling funtion and passes x,y to them. This functions then handles the touch. If not, it calls the mode settings touch function that then calls the mode touch fucntion responsible for that group of modes, and also passes x,y to it. Then this fuction handles the touch.
+## Main loop
+The main loop also checks if the time has changed by 1 minute. If yes it updates the top part of the display that displays time. \
+It is also an important part of touch handling as mentioned one paragraph above. \
+It is also used to check if the time passed since the last display touch is larger that 2 minutes. If yes it turn off the display. It can be turned on again by touching it. \
+It is also used to process button flags. That means exiting color picker, mode picker or numeric keyboard or turning off a running NeoPixel mode. Fist the buttong flag is set in the button ISR, depending on the time it has been pushed down (using time.ticks_ms()). Then it is processed in the main loop and the correscponding action is executed. \
+The main loop sleep time is 100ms.
 ## Youtube videos note
 Link to demo youtube playlist: https://www.youtube.com/playlist?list=PLYp0B6ZtO7mI \
 *In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size.*
