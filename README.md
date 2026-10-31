@@ -1,7 +1,3 @@
-
-https://github.com/user-attachments/assets/451d4137-06df-42a3-a8c1-64a2d4a974d6
-
-https://github.com/user-attachments/assets/3270fa61-b3d4-4a4b-9e82-4c4ba58e1e24
 # Credits
 ili9341 and xtp2046 libraries source: https://github.com/rdagger/micropython-ili9341/tree/master \
 HSV2RGB function in pixAnimations source: https://toptechboy.com/convert-hsv-to-rgb-in-micropython/ (This function was modfied by me) \
@@ -138,6 +134,12 @@ https://github.com/user-attachments/assets/b10a56e8-8120-4af6-9d38-f05e15bc119d
 ### Fading minimal brightness
 The minimal brightness value during fading. Brightness won't change lower than this value during fading. \
 The maximal brightness value during fading can be adjusted using the brightness potentiometer. 
+### Fading type
+The function used to determine brigthness. \
+There are 2 values: linear and exponential.
+Videos: \
+Linear: https://github.com/user-attachments/assets/67405945-75a5-425e-baf9-ab2ada6e1a5e \
+Exponential: https://github.com/user-attachments/assets/e3abc03c-18d8-4aaa-9f18-ebbcb2e90f7e
 ### Speed
 Determines how fast does the animation run. How quickly does it change. \
 Animation timestep is calculated as t=(x/speed), where x is a value in miliseconds and is specific for each mode.
@@ -151,8 +153,8 @@ Determines how far from white is the color. If you have 100% saturation you have
 The direction where the color gradient is shifting along the NeoPixel strip. \
 It can have 2 values: Forward (FD) or backwards (BG) \
 Videos: \
-Forward: Uploading 20261031_215625.mp4… \
-Backwards: Uploading 20261031_215650.mp4…
+Forward: https://github.com/user-attachments/assets/451d4137-06df-42a3-a8c1-64a2d4a974d6 \
+Backwards: https://github.com/user-attachments/assets/3270fa61-b3d4-4a4b-9e82-4c4ba58e1e24
 ### Tracewidth
 The amount of pixels except the main pixel that are 'running' on the strip. \
 (The other pixels brightness is halved that many times as how much you are away from the main pixel.)
@@ -160,7 +162,14 @@ The amount of pixels except the main pixel that are 'running' on the strip. \
 The amount of pixels that are turned on at the same time during the stars mode.
 ### Max sound value
 It is the sound level value that the sound sensor must read in order to light up the whole NeoPixel strip during the soundbar mode.
-###
+### Orientation
+The orientation of the soundbar in the soundbar mode.\
+Determines where does the soundbar start (low values) and end (hight values). Which pixels are turned on at  lower values, and which are turned on at higher values. \
+Possible values: \
+-left: start->pixel 0 end-> pixel with the highest index \
+-right: start->pixel with the highest index end-> pixel 0 \
+-center: start-> center pixels end-> edge pixels (it looks like 2 soundbars are displayed in this orietation, one right one left) 
+### Reverse
 ## System design
 ## Youtube videos note
 
