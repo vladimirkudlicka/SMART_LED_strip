@@ -471,7 +471,7 @@ def stars(speed,stars_count):
     while runAnimation:
         brightness=0.05+0.95*getBrightness(0.95)
         if len(starList)<stars_count:
-            if random.randint(0,stars_count-(stars_count-len(starList)))==1:
+            if random.randint(0,1+len(starList))==1:
                 if random.randint(0,5)==2:
                     sat=100
                 else:
