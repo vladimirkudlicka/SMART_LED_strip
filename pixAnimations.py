@@ -80,6 +80,7 @@ def getBrightness(rng):
     potVal=BrightPot.read_u16()
     #print(potVal)
     if not wifiBrightness:
+        potVal=lastNonWiFipotVal*0.9 + potVal*0.1
         lastNonWiFipotVal=potVal
         return round((potVal/65535)*rng,2)
     else:
@@ -251,8 +252,8 @@ def static_rainbow(saturation,fadingActive,fminBright,fspeed,fadetype,reverse):
             brigthness=0.05+0.95*getBrightness(0.95)
             for i in range(pixLength):
                 pix[i]=(math.ceil(pixList[i][0]*brigthness),math.ceil(pixList[i][1]*brigthness),math.ceil(pixList[i][2]*brigthness)) 
-        pix.write() 
-        sleep_ms(10)
+            pix.write() 
+            sleep_ms(10)
 def rainbow_scrolling(speed,saturation,reverse):
     global runAnimation
     hue=0
