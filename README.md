@@ -189,9 +189,15 @@ Part list: \
 After the ESP32 is connected to WiFi I use a built in library called ntptime, to set the ESP32's RTC to UTC time. After that I use ureguests to find ESP32's timezone based on ESP32's IP adress. I use this API for it: http://ip-api.com/json/?fields=timezone,offset . Then I add the time offset to the UTC time from the RTC and set RTC time again, but now with time offset depending on ESP32's timzone.
 ### Modes running
 Modes and everything they need to run is in the pixAnimations module I coded myself. I had to move it there because of optimization. \
-The modes are run **using threading** so that they can run smoothly, while also keeping display reactions fast. I use a flag called runAnimation to stop the modes. Each mode is a function containing the mode program. while runAnimation loop is used instead of a while True loop, so that I am able to stop the modes. Everythime you click RunMode button on the display a function in the main.py is called, this funtion sets runAnimation to False (stops the current mode) waits and then sets it back to True. Then it starts a new thread, which is a mode funtion and it also passes all importatnt parameter to the mode function.(starts the new mode)
-##
+The modes are ran **using threading** so that they can run smoothly, while also keeping display reactions fast. I use a flag called runAnimation to stop the modes. Each mode is a function containing the mode program. while runAnimation loop is used instead of a while True loop, so that I am able to stop the modes. Everythime you click RunMode button on the display a function in the main.py is called, this funtion sets runAnimation to False (stops the current mode) waits and then sets it back to True. Then it starts a new thread, which is a mode funtion and it also passes all importatnt parameter to the mode function.(starts the new mode) \
+Modes parameters are stored inside a pixParams list in main.py. Colors are stored as a list pixColors=[[hue1,sat1],[hue2,sat2]] also in main.py. Parameters are shared for all modes. (If you set saturation to 50 on one mode it will also be 50 on another one.)
+## Displaying UI
+Each UI type has its own display function. Numeric keyboard, mode picker, color picker and mode settings. They all have their own display function. \
+If color picker, mode picker or numeric keyboard UI is active they each set their own active flag to True.
+## Touch reaction
+When you touch the display an INT-PIN interrupt is triggered. In the ISR (Interrupt Service Routine) the touch flag is set also with the x,y coordinates. \
+
 ## Youtube videos note
 Link to demo youtube playlist: https://www.youtube.com/playlist?list=PLYp0B6ZtO7mI \
-*In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size. I was also clicking in the demos with my non-dominant hand so this also might have caused some missclicks**
+*In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size.*
 
