@@ -175,6 +175,7 @@ Reverses the order of colors in a color gradient. \
 e.g if pixel 0 was green and the last pixel was blue and there was a gradient between them, after reverse is applied pixel 0 will be blue and the last pixel will be green. \
 In rainbow scrolling mode it reverses the direction in which it goes through the color spectrum.
 ## System design
+Programs are written in micropython.
 ### Harware parts
 Part list: \
 -ESP32-WROOM-32 \
@@ -184,7 +185,12 @@ Part list: \
 -pushbutton (GPIO33) \
 -NeoPixel strip (ws2818b) (GPIO21) \
  Display wiring: SCK-GPIO18, MISO-GPIO19, MOSI-GPIO23, CS-GPIO5, RST-GPIO22, DC-GPIO17, DSP_LED-GPIO16, touch_SCK-GPIO14, touch_MOSI-GPIO13, touch_MISO-GPIO12, touch_CS-GPIO26, INT_PIN-GPIO27
-
+### Time synchronization
+After the ESP32 is connected to WiFi I use a built in library called ntptime, to set the ESP32's RTC to UTC time. After that I use ureguests to find ESP32's timezone based on ESP32's IP adress. I use this API for it: http://ip-api.com/json/?fields=timezone,offset . Then I add the time offset to the UTC time from the RTC and set RTC time again, but now with time offset depending on ESP32's timzone.
+### Modes running
+Modes and everything they need to run is in the pixAnimations module I coded myself. I had to move it there because of optimization. \
+The modes are run **using threading** so that they can run smoothly, while also keeping display reactions fast. I use a flag called runAnimation to stop the modes. Each mode is a function containing the mode program. while runAnimation loop is used instead of a while True loop, so that I am able to stop the modes. Everythime you click RunMode button on the display a function in the main.py is called, this funtion sets runAnimation to False (stops the current mode) waits and then sets it back to True. Then it starts a new thread, which is a mode funtion and it also passes all importatnt parameter to the mode function.(starts the new mode)
+##
 ## Youtube videos note
 Link to demo youtube playlist: https://www.youtube.com/playlist?list=PLYp0B6ZtO7mI \
 *In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size. I was also clicking in the demos with my non-dominant hand so this also might have caused some missclicks**
