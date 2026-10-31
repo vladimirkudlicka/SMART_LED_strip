@@ -21,6 +21,7 @@ Elements of the main display UI (mode settings): \
   -Box with current mode. After clicking on the box you will enter the mode picker. \
   -Parameter lines, which consist of parameter name and a box with parameter value. After clicking on the box you will enter numeric keyboard if it is a numeric parameter, or it will change to the next value in case of non numeric parameter ( e.g. True -> False, linear->exponential). \
   -Color boxes, which are boxes filled with their current color and text describing which color is it (1st or 2nd). After clicking on one of the boxes you will enter the color picker. \
+  -Run mode box, it is a box at the bottom of the screen containing the text Run mode. After clicking on it, the neopixel mode which settings are displayed will be run. \
   Images: \
 <img width="306" height="408" alt="20261031_175559" src="https://github.com/user-attachments/assets/801b67d0-921b-45ac-9b29-fa207ae425af" /> <img width="306" height="408" alt="20261031_175428" src="https://github.com/user-attachments/assets/d6db9fff-172f-4bf4-ba4f-35149beb2a6e" />
 
@@ -31,6 +32,8 @@ Elements of the color picker: \
 -Color wheel. It is basiccally the color pallete you can choose from. By clicking on it you can select the color. \
 -Confirm button/box. It is located in bottom right corner after clicking on it it will save the color and the display will switch back to modes settings. \
 The system uses hue and  saturation to store and manipulate with the color. \
+Before this UI is loaded the running neopixel mode is terminated and the strip is turned off, so that it can be used to show color preview. After returning back to the modes settings you will have to manually 
+re-run neopixel mode, since the strip will be turned off. \
 The color picker UI takes a lot of time to render (approx. 20s), this is because the color wheel is not stored as an image, instead is is computed using trigonometry. To save RAM and prevent the system from collapsing it is computed and then uploaded to the display in blocks, and that is the reason why it takes so long. \
 Images: \
 <img width="306" height="408" alt="20261031_181654" src="https://github.com/user-attachments/assets/c3139403-b48a-4923-8c09-ac211d9a231a" />
@@ -46,6 +49,12 @@ Images: \
 <img width="306" height="408" alt="20261031_183616" src="https://github.com/user-attachments/assets/7fd9781b-4354-4fdc-899c-39d782597c3e" />
 <img width="306" height="408" alt="20261031_183608" src="https://github.com/user-attachments/assets/e741f87c-2078-4426-9f5f-253334c7f1dc" />
 #### Mode picker
+It is a display UI used for selecting which mode's setting are you going to modify. \
+By selecting the mode you will not run the neopixel mode. You can only select which mode's parameters are you changing. You can only run modes using the Run mode button in the mode settings. \
+This UI consists of a list of settings tabs names/mode names. By clicking on one mode/settings tab name you will enter its settings. \
+Image: \
+<img width="306" height="408" alt="20261031_185819 (1)" src="https://github.com/user-attachments/assets/3a1484a0-af12-4776-9d7c-7499a3443e2a" /> \
+*You can see that there are 2 settings tabs that are not neopixel modes: alarm setting and PIR settings. These are setting tabs for future features that are not implemented yet.*
 ## Modes description and parameters
 ## Parameters description
 ## System design
