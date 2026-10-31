@@ -196,13 +196,16 @@ Each UI type has its own display function. Numeric keyboard, mode picker, color 
 If color picker, mode picker or numeric keyboard UI is active they each set their own active flag to True.
 ## Touch reaction
 When you touch the display an INT-PIN interrupt is triggered. In the ISR (Interrupt Service Routine) the touch flag is set to True and it also contains the x,y coordinates. (it is a list) \
-Then the main loop in SMART_led_strip.py checks for the flag. If it true it checks the UI flags if there is color picker , mode picker or numeric keyboard running. If yes it calls the UI's touch handling funtion and passes x,y to them. This functions then handles the touch. If not, it calls the mode settings touch function that then calls the mode touch fucntion responsible for that group of modes, and also passes x,y to it. Then this fuction handles the touch.
+Then the main loop in SMART_led_strip.py checks for the flag. If it is true it checks the UI flags if there is color picker , mode picker or numeric keyboard running. If yes it calls the UI's touch handling function and passes x,y to them. This functions then handles the touch. If not, it calls the mode settings touch function that then calls the mode touch fucntion responsible for that group of modes, and also passes x,y to it. Then this fuction handles the touch.
 ## Main loop
-The main loop also checks if the time has changed by 1 minute. If yes it updates the top part of the display that displays time. \
+The main loop checks if the time has changed by 1 minute. If yes it updates the top part of the display that displays time. \
 It is also an important part of touch handling as mentioned one paragraph above. \
 It is also used to check if the time passed since the last display touch is larger that 2 minutes. If yes it turn off the display. It can be turned on again by touching it. \
 It is also used to process button flags. That means exiting color picker, mode picker or numeric keyboard or turning off a running NeoPixel mode. Fist the buttong flag is set in the button ISR, depending on the time it has been pushed down (using time.ticks_ms()). Then it is processed in the main loop and the correscponding action is executed. \
 The main loop sleep time is 100ms.
+## How to run the program on the ESP32
+In orded to run these programs you need to fill in the SECRETS.py file with your WiFi's SSID and password.
+Then you need to upload pixAnimations.py, ili9341.py  and xtp2046.py to your ESP32's flash. Then you need to save SMART_led_strip.py as main.py on your ESP32's flash. Then just wire it up and plug it in and you should be good to go.
 ## Youtube videos note
 Link to demo youtube playlist: https://www.youtube.com/playlist?list=PLYp0B6ZtO7mI \
 *In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size.*
