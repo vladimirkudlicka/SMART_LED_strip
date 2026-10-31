@@ -175,6 +175,17 @@ Reverses the order of colors in a color gradient. \
 e.g if pixel 0 was green and the last pixel was blue and there was a gradient between them, after reverse is applied pixel 0 will be blue and the last pixel will be green. \
 In rainbow scrolling mode it reverses the direction in which it goes through the color spectrum.
 ## System design
-## Youtube videos note
+### Harware parts
+Part list: \
+-ESP32-WROOM-32 \
+-ili9341 based 2.4 inch touchscreen display (xtp2046-touch processing IC) \
+-10k potentiometer (GPIO35) \
+-analog sound level sensor (GPIO34) \
+-pushbutton (GPIO33) \
+-NeoPixel strip (ws2818b) (GPIO21) \
+ Display wiring: SCK-GPIO18, MISO-GPIO19, MOSI-GPIO23, CS-GPIO5, RST-GPIO22, DC-GPIO17, DSP_LED-GPIO16, touch_SCK-GPIO14, touch_MOSI-GPIO13, touch_MISO-GPIO12, touch_CS-GPIO26, INT_PIN-GPIO27
 
+## Youtube videos note
+Link to demo youtube playlist: https://www.youtube.com/playlist?list=PLYp0B6ZtO7mI \
+*In the playlist you can see that I missclick quite often. It is not a software flaw but a hardware flaw. The display touchscreen is a resistive touchscreen (old technology) and it somethimes does not identify the touch point exactly enough, for its size. I was also clicking in the demos with my non-dominant hand so this also might have caused some missclicks**
 
