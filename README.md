@@ -55,8 +55,36 @@ This UI consists of a list of settings tabs names/mode names. By clicking on one
 Image: \
 <img width="306" height="408" alt="20261031_185819 (1)" src="https://github.com/user-attachments/assets/3a1484a0-af12-4776-9d7c-7499a3443e2a" /> \
 *You can see that there are 2 settings tabs that are not neopixel modes: alarm setting and PIR settings. These are setting tabs for future features that are not implemented yet.*
-## Modes description and parameters
+## Modes description
+### White
+The NeoPixel strip  is filled with white color, which temperature you can adjust. You can optionaly turn on fading (periodic change of brighntness). \
+Parameters: fading active; fading type; minimal brightness; (fading) speed; temperature \
+Image:\
+<img width="408" height="306" alt="20261031_191740" src="https://github.com/user-attachments/assets/deb19832-00ec-42be-a907-d5748f9e2cb3" />
+### Monocolor 
+The NeoPixel strip is filled with one color, you can select. You can optionaly turn on fading (periodic change of brighntness). \
+Parameters: fading active; fading type; minimal brightness; (fading) speed; color(1)
+Images: \
+<img width="408" height="306" alt="20261031_191843" src="https://github.com/user-attachments/assets/56bba2b3-9704-4b44-ae75-04fa65108935" />
+### Bicolor
+The NeoPixel strip is filled with alternating 2 colors, color1 and color2. (even pixel numbers -> color1, odd pixel numbers -> color2) You can optionaly turn on fading (periodic change of brighntness).\
+Parameters: fading active; fading type; minimal brightness; (fading) speed; color1; color2
+Images: \
+<img width="408" height="306" alt="20261031_19202" src="https://github.com/user-attachments/assets/c5f36225-3023-492e-b675-63877ca25923" />
+### Color range
+The NeoPixel strip displays a static color gradient from color1 to color2.The pixel color changes gradualy along the strip length. You can optionaly turn on fading (periodic change of brighntness).\
+Parameters: fading active; fading type; minimal brightness; (fading) speed; color1; color2;reverse
+Images: \
+<img width="408" height="306" alt="20261031_193313" src="https://github.com/user-attachments/assets/24719b4d-587a-471d-aa35-37a69d7b0dfa" />
+<img width="408" height="306" alt="20261031_193235" src="https://github.com/user-attachments/assets/d1f7fa3e-9221-4637-bd31-2c8c737090dc" />
+### Static rainbow
+The NeoPixel strip displays a static color gradiend of the whole color spectrum.The pixel color changes gradualy along the strip length from red through green, to blue and back to red. You can optionaly turn on fading (periodic change of brighntness).\
+Parameters: fading active; fading type; minimal brightness; (fading) speed; reverse; saturation
+Images: \
+### Rainbow scrolling
+
 ## Parameters description
 ## System design
+## Youtube videos note
 
 
