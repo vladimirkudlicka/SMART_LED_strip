@@ -247,7 +247,7 @@ def validate_num(pixParamIndex,value):
     return OK,EMSG   
 selected_num=''
 numKeyData=[False,0]#active flag, pixData list index
-pixParams=[0,0,1,0,0,0,0,0,0,0,0,0,0,0]
+pixParams=[0,0,1,0,0,0,0,0,0,1,0,0,0,0]
 numKeyLayout=[['1','2','3'],['4','5','6'],['7','8','9'],['C','0','OK']]
 def numKey_UI():
     global numKeyLayout,numkey_emsg
