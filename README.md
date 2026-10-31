@@ -99,7 +99,7 @@ The NeoPixel strip displays a color gradient of the whole color spectrum, that g
 Parameters: speed; direction; reverse; saturation \
 Video: \
 https://github.com/user-attachments/assets/8683c5e3-eeae-4af0-b9e4-4365a7df2057
-### running light-full
+### Running light-full
 Only one pixel, or a group of pixel is lit up in a selected color. This group of pixels changes its led indexes, the lit up pixels move on the strip, creating an effect as if  the light was 'running' along the NeoPixel strip. \
 In this mode the light is 'running' along the whole strip \
 Parameters: speed; style; trace width; \
@@ -116,6 +116,16 @@ A selected amount of pixels with random color gradualy appear on random places o
 Parameters: speed; number of stars \
 Video: \
 https://github.com/user-attachments/assets/4c371b9b-5c3a-4340-8ff7-183c0c43e3fc
+### Soundbar-monocolor
+Depending on the sound intensity measured by the sound sensor (you can see it on photos and videos) a calculated amount of pixels lights up in a selected color. The brightness of the of the last lit up pixel also changes according to the sound intensity to make it more continuouos. \
+Parameters: orientation; max sound value; reverse; color \
+Video: \
+https://github.com/user-attachments/assets/9da0489d-f077-424d-85cb-164218529b64
+### Soundbar-color range
+Depending on the sound intensity measured by the sound sensor (you can see it on photos and videos) a calculated amount of pixels lights up to display a part of a color gradient from color1 to color2. The brightness of the of the last lit up pixel also changes according to the sound intensity to make it more continuouos. \
+Parameters: orientation; max sound value; reverse; color1; color2 \
+Video: \
+https://github.com/user-attachments/assets/5dade8ec-800d-4238-ace8-fb812a9bef33
 ## Parameters description
 ## System design
 ## Youtube videos note
