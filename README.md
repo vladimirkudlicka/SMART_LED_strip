@@ -78,11 +78,27 @@ Images: \
 <img width="408" height="306" alt="20261031_193313" src="https://github.com/user-attachments/assets/24719b4d-587a-471d-aa35-37a69d7b0dfa" />
 <img width="408" height="306" alt="20261031_193235" src="https://github.com/user-attachments/assets/d1f7fa3e-9221-4637-bd31-2c8c737090dc" />
 ### Static rainbow
-The NeoPixel strip displays a static color gradiend of the whole color spectrum.The pixel color changes gradualy along the strip length from red through green, to blue and back to red. You can optionaly turn on fading (periodic change of brighntness).\
+The NeoPixel strip displays a static color gradient of the whole color spectrum.The pixel color changes gradualy along the strip length from red through green, to blue and back to red. You can optionaly turn on fading (periodic change of brighntness).\
 Parameters: fading active; fading type; minimal brightness; (fading) speed; reverse; saturation
 Images: \
+<img width="408" height="306" alt="20261031_193839" src="https://github.com/user-attachments/assets/5445bfc4-93b5-4a65-b102-39648928781f" />
+<img width="408" height="306" alt="20261031_193819" src="https://github.com/user-attachments/assets/4be44d0d-a0ea-4f0b-8d7d-f1de9368358e" />
 ### Rainbow scrolling
-
+The NeoPixel strip is filled with a color that gradualy changes and it goes through the whole color spectrum. \
+Parameters: speed; saturation; reverse \
+Video: \
+https://github.com/user-attachments/assets/183dcf6d-ea0a-4f41-9295-07365bde01a7
+### Dynamic color range
+The NeoPixel strip displays a color gradient from color 1 to color 2, that gradualy changes its position on the strip over time. \
+Parameters: speed; direction; reverse; color1; color2 \
+Image and video: \
+<img width="306" height="408" alt="20261031_200327 (1)" src="https://github.com/user-attachments/assets/cb8c2f83-221d-4f18-9c27-cdf01a2b8586" />
+https://github.com/user-attachments/assets/1ba4629d-4682-4192-b056-e391df68980b
+### Dynamic rainbow
+The NeoPixel strip displays a color gradient of the whole color spectrum, that gradualy changes its position on the strip over time. \
+Parameters: speed; direction; reverse; saturation \
+Video: \
+https://github.com/user-attachments/assets/8001060a-3fec-48e5-8061-b716112b7465
 ## Parameters description
 ## System design
 ## Youtube videos note
